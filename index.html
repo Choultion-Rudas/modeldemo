@@ -347,7 +347,7 @@
 			});
 		});
 
-		submitButton.addEventListener('click', async () => {
+		submitButton.addEventListener('click'， async () => {
 			if (audioInput.files.length === 0) {
 				statusText.textContent = '错误：请上传或录制音频。';
 				return;
@@ -361,21 +361,21 @@
 			try {
 				const audioFile = audioInput.files[0];
 				const app = await client("Choultion-Rudas/SenseVoice");
-				statusText.textContent = '上传并识别中...';
+				statusText。textContent = '上传并识别中...';
 
 				const result = await app.predict("/model_inference", [
 					new Blob([await audioFile.arrayBuffer()], { type: audioFile.type }),
-					document.getElementById('language').value,
-					document.getElementById('output_format').value,
-					document.getElementById('use_itn').checked,
+					document。getElementById('language')。value,
+					document。getElementById('output_format')。value,
+					document。getElementById('use_itn')。checked,
 					document.getElementById('merge_vad').checked,
 					parseFloat(document.getElementById('merge_length').value),
-					document.getElementById('ban_emo_unk').checked,
+					document。getElementById('ban_emo_unk')。checked,
 				]);
 
-				statusText.textContent = '识别完成！';
-				resultText.value = result.data[0];
-				resultWrapper.style.display = 'block';
+				statusText。textContent = '识别完成！';
+				resultText。value = result。data[0];
+				resultWrapper。style.display = 'block';
 
 			} catch (error) {
 				console.error("API 调用失败:", error);
