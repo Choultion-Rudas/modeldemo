@@ -408,51 +408,68 @@
 
 				submitButton.disabled = true;
 				loader.style.display = 'block';
-				statusText.textContent = '上传并识别中...';
+				statusText.textContent = '处理并上传中...';
 				resultWrapper.style.display = 'none';
 
 				const YOUR_WORKER_URL = "/api";
+				const audioFile = audioInput.files[0];
 
-				const formData = new FormData();
-				formData.append('audio_file', audioInput.files[0]);
-				formData.append('language', document.getElementById('language').value);
-				formData.append('output_format', document.getElementById('output_format').value);
-				formData.append('use_itn', document.getElementById('use_itn').checked);
-				formData.append('merge_vad', document.getElementById('merge_vad').checked);
-				formData.append('merge_length', document.getElementById('merge_length').value);
-				formData.append('ban_emo_unk', document.getElementById('ban_emo_unk').checked);
+				const reader = new FileReader();
+				reader.readAsDataURL(audioFile);
+				reader.onload = async () => {
+					const audioDataUrl = reader.result;
 
-				try {
-					const response = await fetch(YOUR_WORKER_URL, {
-						method: 'POST',
-						body: formData,
-					});
+					const hfPayload = {
+						audio_input: audioDataUrl,
+						language: document.getElementById('language').value,
+						output_format: document.getElementById('output_format').value,
+						use_itn: document.getElementById('use_itn').checked,
+						merge_vad: document.getElementById('merge_vad').checked,
+						merge_length: parseFloat(document.getElementById('merge_length').value),
+						ban_emo_unk: document.getElementById('ban_emo_unk').checked,
+					};
 
-					if (!response.ok) {
-						throw new Error(`服务器错误: ${response.status}`);
+					try {
+						statusText.textContent = '上传并识别中...';
+						const response = await fetch(YOUR_WORKER_URL, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify(hfPayload),
+						});
+
+						if (!response.ok) {
+							const errData = await response.json().catch(() => ({ error: `服务器错误: ${response.status}` }));
+							throw new Error(errData.error);
+						}
+
+						const result = await response.json();
+
+						if (result.error) {
+							throw new Error(result.error);
+						}
+
+						statusText.textContent = '识别完成！';
+						resultText.value = result.data[0];
+						resultWrapper.style.display = 'block';
+
+					} catch (error) {
+						console.error("API 调用失败:", error);
+						let errorMsg = `调用失败: ${error.message}`;
+						if (error.message.includes('503') || error.message.includes('Hugging Face')) {
+							errorMsg += ' Hugging Face 服务器可能在休眠，请等待 1 分钟后重试。';
+						}
+						statusText.textContent = errorMsg;
+					} finally {
+						submitButton.disabled = false;
+						loader.style.display = 'none';
 					}
+				};
 
-					const result = await response.json();
-
-					if (result.error) {
-						throw new Error(result.error);
-					}
-
-					statusText.textContent = '识别完成！';
-					resultText.value = result.data[0];
-					resultWrapper.style.display = 'block';
-
-				} catch (error) {
-					console.error("API 调用失败:", error);
-					let errorMsg = '调用失败，可能是网络问题或服务器超时。';
-					if (error.message.includes('503') || error.message.includes('Hugging Face')) {
-						errorMsg += 'Hugging Face 服务器可能在休眠，请等待 1 分钟后重试。';
-					}
-					statusText.textContent = errorMsg;
-				} finally {
+				reader.onerror = () => {
+					statusText.textContent = '错误：读取文件失败。';
 					submitButton.disabled = false;
 					loader.style.display = 'none';
-				}
+				};
 			});
 		});
 	</script>
