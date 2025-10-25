@@ -1,3 +1,13 @@
+function arrayBufferToBase64(buffer) {
+	let binary = '';
+	const bytes = new Uint8Array(buffer);
+	const len = bytes.byteLength;
+	for (let i = 0; i < len; i++) {
+		binary += String.fromCharCode(bytes[i]);
+	}
+	return btoa(binary);
+}
+
 export async function onRequestPost(context) {
 	const HF_API_URL = "https://choultion-rudas-sensevoice.hf.space/run/model_inference";
 
@@ -13,31 +23,36 @@ export async function onRequestPost(context) {
 		}
 
 		const arrayBuffer = await audioFileBlob.arrayBuffer();
-		const base64 = btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBuffer)));
+		const base64 = arrayBufferToBase64(arrayBuffer);
 		const mimeType = audioFileBlob.type || 'audio/wav';
 		const audioDataUrl = `data:${mimeType};base64,${base64}`;
 
 		const payload = {
-			"data": [
-				audioDataUrl,
-				formData.get("language"),
-				formData.get("output_format"),
-				formData.get("use_itn") === 'true',
-				formData.get("merge_vad") === 'true',
-				parseFloat(formData.get("merge_length")),
-				formData.get("ban_emo_unk") === 'true',
-			]
+			audio_input: audioDataUrl,
+			language: formData.get("language"),
+			output_format: formData.get("output_format"),
+			use_itn: formData.get("use_itn") === 'true',
+			merge_vad: formData.get("merge_vad") === 'true',
+			merge_length: parseFloat(formData.get("merge_length")),
+			ban_emo_unk: formData.get("ban_emo_unk") === 'true',
 		};
 
 		const hfResponse = await fetch(HF_API_URL, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
+			body: JSON.stringify({ data: [payload] }),
 		});
 
 		if (!hfResponse.ok) {
 			const errorText = await hfResponse.text();
-			throw new Error(`Hugging Face API Error: ${hfResponse.status} ${errorText}`);
+			let detail = errorText;
+			try {
+				const errorJson = JSON.parse(errorText);
+				if (errorJson.error) {
+					detail = errorJson.error;
+				}
+			} catch (e) { }
+			throw new Error(`Hugging Face API Error: ${hfResponse.status} - ${detail}`);
 		}
 
 		const hfResult = await hfResponse.json();
@@ -47,6 +62,7 @@ export async function onRequestPost(context) {
 		});
 
 	} catch (error) {
+		console.error("Cloudflare Function Error:", error.message);
 		return new Response(JSON.stringify({ error: error.message }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' },
