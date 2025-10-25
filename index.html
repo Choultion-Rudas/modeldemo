@@ -306,84 +306,86 @@
 	<script type="module">
 		import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.1.3/dist/index.min.js";
 
-		const dropZone = document.getElementById('drop-zone');
-		const uploadButton = document.getElementById('upload-button');
-		const audioInput = document.getElementById('audio_input');
-		const fileNameLabel = document.getElementById('file-name-label');
-		const submitButton = document.getElementById('submit-button');
-		const statusText = document.getElementById('status-text');
-		const loader = document.getElementById('loader');
-		const resultWrapper = document.getElementById('result-wrapper');
-		const resultText = document.getElementById('result-text');
-		const copyButton = document.getElementById('copy-button');
-		const mergeLengthSlider = document.getElementById('merge_length');
-		const sliderLabel = document.getElementById('slider-label');
+		document.addEventListener('DOMContentLoaded', () => {
+			const dropZone = document.getElementById('drop-zone');
+			const uploadButton = document.getElementById('upload-button');
+			const audioInput = document.getElementById('audio_input');
+			const fileNameLabel = document.getElementById('file-name-label');
+			const submitButton = document.getElementById('submit-button');
+			const statusText = document.getElementById('status-text');
+			const loader = document.getElementById('loader');
+			const resultWrapper = document.getElementById('result-wrapper');
+			const resultText = document.getElementById('result-text');
+			const copyButton = document.getElementById('copy-button');
+			const mergeLengthSlider = document.getElementById('merge_length');
+			const sliderLabel = document.getElementById('slider-label');
 
-		uploadButton.addEventListener('click', () => audioInput.click());
-		audioInput.addEventListener('change', () => {
-			if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name;
-		});
-
-		mergeLengthSlider.addEventListener('input', () => {
-			sliderLabel.textContent = `断句最大长度（秒）：${mergeLengthSlider.value}s`;
-		});
-
-		['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }, false));
-		['dragenter', 'dragover'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.add('drag-over'), false));
-		['dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.remove('drag-over'), false));
-		dropZone.addEventListener('drop', e => {
-			const files = e.dataTransfer.files;
-			if (files.length > 0) {
-				audioInput.files = files;
-				fileNameLabel.textContent = files[0].name;
-			}
-		}, false);
-
-		copyButton.addEventListener('click', () => {
-			navigator.clipboard.writeText(resultText.value).then(() => {
-				const icon = copyButton.querySelector('md-icon');
-				icon.textContent = 'check';
-				setTimeout(() => { icon.textContent = 'content_copy'; }, 1000);
+			uploadButton.addEventListener('click', () => audioInput.click());
+			audioInput.addEventListener('change', () => {
+				if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name;
 			});
-		});
 
-		submitButton.addEventListener('click'， async () => {
-			if (audioInput.files.length === 0) {
-				statusText.textContent = '错误：请上传或录制音频。';
-				return;
-			}
+			mergeLengthSlider.addEventListener('input', () => {
+				sliderLabel.textContent = `断句最大长度（秒）：${mergeLengthSlider.value}s`;
+			});
 
-			submitButton.disabled = true;
-			loader.style.display = 'block';
-			statusText.textContent = '连接服务中...';
-			resultWrapper.style.display = 'none';
+			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }, false));
+			['dragenter', 'dragover'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.add('drag-over'), false));
+			['dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.remove('drag-over'), false));
+			dropZone.addEventListener('drop', e => {
+				const files = e.dataTransfer.files;
+				if (files.length > 0) {
+					audioInput.files = files;
+					fileNameLabel.textContent = files[0].name;
+				}
+			}, false);
 
-			try {
-				const audioFile = audioInput.files[0];
-				const app = await client("Choultion-Rudas/SenseVoice");
-				statusText。textContent = '上传并识别中...';
+			copyButton.addEventListener('click', () => {
+				navigator.clipboard.writeText(resultText.value).then(() => {
+					const icon = copyButton.querySelector('md-icon');
+					icon.textContent = 'check';
+					setTimeout(() => { icon.textContent = 'content_copy'; }, 1000);
+				});
+			});
 
-				const result = await app.predict("/model_inference", [
-					new Blob([await audioFile.arrayBuffer()], { type: audioFile.type }),
-					document。getElementById('language')。value,
-					document。getElementById('output_format')。value,
-					document。getElementById('use_itn')。checked,
-					document.getElementById('merge_vad').checked,
-					parseFloat(document.getElementById('merge_length').value),
-					document。getElementById('ban_emo_unk')。checked,
-				]);
+			submitButton.addEventListener('click', async () => {
+				if (audioInput.files.length === 0) {
+					statusText.textContent = '错误：请上传或录制音频。';
+					return;
+				}
 
-				statusText。textContent = '识别完成！';
-				resultText。value = result。data[0];
-				resultWrapper。style.display = 'block';
+				submitButton.disabled = true;
+				loader.style.display = 'block';
+				statusText.textContent = '连接服务中...';
+				resultWrapper.style.display = 'none';
 
-			} catch (error) {
-				console.error("API 调用失败:", error);
-				statusText.textContent = `调用失败，可能是网络问题或服务器超时。`;
-			} finally {
-				submitButton.disabled = false;
-				loader.style.display = 'none';
-			}
+				try {
+					const audioFile = audioInput.files[0];
+					const app = await client("Choultion-Rudas/SenseVoice");
+					statusText.textContent = '上传并识别中...';
+
+					const result = await app.predict("/model_inference", [
+						new Blob([await audioFile.arrayBuffer()], { type: audioFile.type }),
+						document.getElementById('language').value,
+						document.getElementById('output_format').value,
+						document.getElementById('use_itn').checked,
+						document.getElementById('merge_vad').checked,
+						parseFloat(document.getElementById('merge_length').value),
+						document.getElementById('ban_emo_unk').checked,
+					]);
+
+					statusText.textContent = '识别完成！';
+					resultText.value = result.data[0];
+					resultWrapper.style.display = 'block';
+
+				} catch (error) {
+					console.error("API 调用失败:", error);
+					statusText.textContent = `调用失败，可能是网络问题或服务器超时。`;
+				} finally {
+					submitButton.disabled = false;
+					loader.style.display = 'none';
+				}
+			});
 		});
 	</script>
 
