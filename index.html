@@ -16,28 +16,82 @@
 
 	<style>
 		:root {
+			color-scheme: light;
 			--md-sys-color-primary: #0b57d0;
 			--md-sys-color-on-primary: #ffffff;
 			--md-sys-color-primary-container: #d8e2ff;
 			--md-sys-color-on-primary-container: #001947;
-			--md-sys-color-surface-container-highest: #e3e2e6;
+			--md-sys-color-secondary: #585e71;
+			--md-sys-color-on-secondary: #ffffff;
+			--md-sys-color-secondary-container: #dce2f9;
+			--md-sys-color-on-secondary-container: #151b2c;
+			--md-sys-color-tertiary: #735471;
+			--md-sys-color-on-tertiary: #ffffff;
+			--md-sys-color-tertiary-container: #fed7f9;
+			--md-sys-color-on-tertiary-container: #2b122b;
+			--md-sys-color-error: #ba1a1a;
+			--md-sys-color-on-error: #ffffff;
+			--md-sys-color-error-container: #ffdad6;
+			--md-sys-color-on-error-container: #410002;
+			--md-sys-color-background: #fdfbff;
+			--md-sys-color-on-background: #1b1b1f;
 			--md-sys-color-surface: #fdfbff;
 			--md-sys-color-on-surface: #1b1b1f;
+			--md-sys-color-surface-variant: #e1e2ec;
 			--md-sys-color-on-surface-variant: #44474f;
 			--md-sys-color-outline: #75777f;
+			--md-sys-color-inverse-on-surface: #f2f0f4;
+			--md-sys-color-inverse-surface: #2f3033;
+			--md-sys-color-inverse-primary: #a8c7fa;
+			--md-sys-color-shadow: #000000;
+			--md-sys-color-surface-tint: #0b57d0;
+			--md-sys-color-outline-variant: #c5c6d0;
+			--md-sys-color-scrim: #000000;
+			--md-sys-color-surface-container-highest: #e3e2e6;
+			--md-sys-color-surface-container-high: #eae7eb;
+			--md-sys-color-surface-container: #efedf1;
+			--md-sys-color-surface-container-low: #f5f3f7;
+			--md-sys-color-surface-container-lowest: #ffffff;
 		}
 
 		@media (prefers-color-scheme: dark) {
 			:root {
+				color-scheme: dark;
 				--md-sys-color-primary: #a8c7fa;
 				--md-sys-color-on-primary: #002d68;
 				--md-sys-color-primary-container: #00428f;
 				--md-sys-color-on-primary-container: #d8e2ff;
-				--md-sys-color-surface-container-highest: #44474f;
+				--md-sys-color-secondary: #c0c6dd;
+				--md-sys-color-on-secondary: #2a3042;
+				--md-sys-color-secondary-container: #404659;
+				--md-sys-color-on-secondary-container: #dce2f9;
+				--md-sys-color-tertiary: #e0bbda;
+				--md-sys-color-on-tertiary: #422741;
+				--md-sys-color-tertiary-container: #5a3d58;
+				--md-sys-color-on-tertiary-container: #fed7f9;
+				--md-sys-color-error: #ffb4ab;
+				--md-sys-color-on-error: #690005;
+				--md-sys-color-error-container: #93000a;
+				--md-sys-color-on-error-container: #ffdad6;
+				--md-sys-color-background: #1b1b1f;
+				--md-sys-color-on-background: #e3e2e6;
 				--md-sys-color-surface: #121418;
 				--md-sys-color-on-surface: #e3e2e6;
+				--md-sys-color-surface-variant: #44474f;
 				--md-sys-color-on-surface-variant: #c5c6d0;
 				--md-sys-color-outline: #8e9199;
+				--md-sys-color-inverse-on-surface: #1b1b1f;
+				--md-sys-color-inverse-surface: #e3e2e6;
+				--md-sys-color-inverse-primary: #0b57d0;
+				--md-sys-color-shadow: #000000;
+				--md-sys-color-surface-tint: #a8c7fa;
+				--md-sys-color-outline-variant: #44474f;
+				--md-sys-color-scrim: #000000;
+				--md-sys-color-surface-container-highest: #353539;
+				--md-sys-color-surface-container-high: #2a2a2e;
+				--md-sys-color-surface-container: #1f2023;
+				--md-sys-color-surface-container-low: #1b1b1f;
+				--md-sys-color-surface-container-lowest: #0d0f13;
 			}
 		}
 
@@ -304,8 +358,6 @@
 	</div>
 
 	<script type="module">
-		import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.1.3/dist/index.min.js";
-
 		document.addEventListener('DOMContentLoaded', () => {
 			const dropZone = document.getElementById('drop-zone');
 			const uploadButton = document.getElementById('upload-button');
@@ -356,23 +408,35 @@
 
 				submitButton.disabled = true;
 				loader.style.display = 'block';
-				statusText.textContent = '连接服务中...';
+				statusText.textContent = '上传并识别中...';
 				resultWrapper.style.display = 'none';
 
-				try {
-					const audioFile = audioInput.files[0];
-					const app = await client("Choultion-Rudas/SenseVoice");
-					statusText.textContent = '上传并识别中...';
+				const YOUR_WORKER_URL = "/api";
 
-					const result = await app.predict("/model_inference", [
-						new Blob([await audioFile.arrayBuffer()], { type: audioFile.type }),
-						document.getElementById('language').value,
-						document.getElementById('output_format').value,
-						document.getElementById('use_itn').checked,
-						document.getElementById('merge_vad').checked,
-						parseFloat(document.getElementById('merge_length').value),
-						document.getElementById('ban_emo_unk').checked,
-					]);
+				const formData = new FormData();
+				formData.append('audio_file', audioInput.files[0]);
+				formData.append('language', document.getElementById('language').value);
+				formData.append('output_format', document.getElementById('output_format').value);
+				formData.append('use_itn', document.getElementById('use_itn').checked);
+				formData.append('merge_vad', document.getElementById('merge_vad').checked);
+				formData.append('merge_length', document.getElementById('merge_length').value);
+				formData.append('ban_emo_unk', document.getElementById('ban_emo_unk').checked);
+
+				try {
+					const response = await fetch(YOUR_WORKER_URL, {
+						method: 'POST',
+						body: formData,
+					});
+
+					if (!response.ok) {
+						throw new Error(`服务器错误: ${response.status}`);
+					}
+
+					const result = await response.json();
+
+					if (result.error) {
+						throw new Error(result.error);
+					}
 
 					statusText.textContent = '识别完成！';
 					resultText.value = result.data[0];
@@ -380,7 +444,11 @@
 
 				} catch (error) {
 					console.error("API 调用失败:", error);
-					statusText.textContent = `调用失败，可能是网络问题或服务器超时。`;
+					let errorMsg = '调用失败，可能是网络问题或服务器超时。';
+					if (error.message.includes('503') || error.message.includes('Hugging Face')) {
+						errorMsg += 'Hugging Face 服务器可能在休眠，请等待 1 分钟后重试。';
+					}
+					statusText.textContent = errorMsg;
 				} finally {
 					submitButton.disabled = false;
 					loader.style.display = 'none';
