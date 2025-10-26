@@ -400,6 +400,15 @@
 				});
 			});
 
+			const readFileAsDataURL = (file) => {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = () => resolve(reader.result);
+					reader.onerror = reject;
+					reader.readAsDataURL(file);
+				});
+			};
+
 			const generateSessionHash = () => Math.random().toString(36).substring(2);
 
 			submitButton.addEventListener('click', async () => {
@@ -410,7 +419,7 @@
 
 				submitButton.disabled = true;
 				loader.style.display = 'block';
-				statusText.textContent = '准备上传...';
+				statusText.textContent = '准备文件中...';
 				resultWrapper.style.display = 'none';
 
 				const audioFile = audioInput.files[0];
@@ -418,30 +427,16 @@
 				const sessionHash = generateSessionHash();
 
 				try {
-					statusText.textContent = '上传文件中...';
-					const uploadData = new FormData();
-					uploadData.append("files", audioFile);
-					uploadData.append("session_hash", sessionHash);
-
-					const uploadResponse = await fetch(`${API_BASE_URL}/upload`, {
-						method: 'POST',
-						body: uploadData,
-					});
-
-					if (!uploadResponse.ok) {
-						const errorText = await uploadResponse.text();
-						throw new Error(`文件上传失败: ${uploadResponse.status} ${errorText}`);
-					}
-					const uploadResult = await uploadResponse.json();
-					const uploadedFileInfo = uploadResult[0];
-					if (!uploadedFileInfo) {
-						throw new Error("上传响应中未找到文件信息");
-					}
-					statusText.textContent = '上传完成，开始识别...';
+					const audioDataUrl = await readFileAsDataURL(audioFile);
+					statusText.textContent = '文件编码完成，开始识别...';
 
 					const predictPayload = {
 						data: [
-							uploadedFileInfo,
+							{
+								"name": audioFile.name,
+								"data": audioDataUrl,
+								"is_file": true
+							},
 							document.getElementById('language').value,
 							document.getElementById('output_format').value,
 							document.getElementById('use_itn').checked,
@@ -460,8 +455,8 @@
 					});
 
 					if (!response.ok) {
-						const errData = await response.json().catch(() => ({ error: `服务器错误: ${response.status}` }));
-						throw new Error(errData.error || `API 错误: ${response.status}`);
+						const errText = await response.text();
+						throw new Error(`API 错误: ${response.status} - ${errText}`);
 					}
 
 					const result = await response.json();
