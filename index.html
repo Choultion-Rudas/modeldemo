@@ -464,18 +464,27 @@
 					const arr = await up.json();
 					const first = Array.isArray(arr) ? arr[0] : null;
 					if (!first) throw new Error('上传响应中未找到文件信息');
+
 					const pathStr = typeof first === 'string' ? first : first.path;
 					if (!pathStr) throw new Error('上传结果格式异常');
 
 					statusText.textContent = '已入队，排队/识别中...';
 					let text = '';
 					try {
-						const fileObj = { path: pathStr, orig_name: file.name, mime_type: file.type || null };
+						const fileObj = {
+							path: pathStr,
+							url: null,
+							size: file.size,
+							orig_name: file.name,
+							mime_type: file.type || null,
+							is_stream: false,
+							meta: { _type: 'gradio.FileData' }
+						};
 						text = await runViaQueue(fileObj, fnIndex, sessionHash, (s) => statusText.textContent = s);
 					} catch (e1) {
 						statusText.textContent = '路径方式失败，尝试直接传文件...';
 						const dataUrl = await readAsDataURL(file);
-						const baseObj = { name: file.name, data: dataUrl };
+						const baseObj = { name: file.name, data: dataUrl, is_file: true };
 						const sessionHash2 = genHash();
 						text = await runViaQueue(baseObj, fnIndex, sessionHash2, (s) => statusText.textContent = s);
 					}
