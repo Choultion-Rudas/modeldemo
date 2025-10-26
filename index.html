@@ -219,9 +219,7 @@
 		}
 
 		details {
-			border-top: 1px solid var(--md-sys-color-outline);
 			margin-top: 24px;
-			padding-top: 20px;
 		}
 
 		details>summary {
@@ -247,7 +245,9 @@
 		}
 
 		.advanced-settings-content {
-			padding-top: 20px;
+			padding-top: 16px;
+			margin-top: 16px;
+			border-top: 1px solid var(--md-sys-color-outline-variant);
 			overflow: hidden;
 		}
 
@@ -265,6 +265,11 @@
 			visibility: hidden;
 			transition: opacity 0.3s, visibility 0.3s;
 			z-index: 1000;
+		}
+
+		#toast.show {
+			opacity: 1;
+			visibility: visible;
 		}
 
 		#drag-overlay {
