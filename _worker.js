@@ -9,7 +9,7 @@ export default {
 					headers: {
 						'Access-Control-Allow-Origin': '*',
 						'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-						'Access-Control-Allow-Headers': '*',
+						'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || '*',
 					}
 				});
 			}
@@ -19,7 +19,6 @@ export default {
 
 			const hfHeaders = new Headers(request.headers);
 			hfHeaders.set('Host', 'choultion-rudas-sensevoice.hf.space');
-			hfHeaders.set('Origin', 'https://choultion-rudas-sensevoice.hf.space');
 
 			const hfRequest = new Request(targetUrl.toString(), {
 				method: request.method,
