@@ -391,6 +391,59 @@
 				return idx;
 			}
 			function genHash() { return Math.random().toString(36).slice(2); }
+			function readAsDataURL(file) {
+				return new Promise((resolve, reject) => {
+					const r = new FileReader();
+					r.onload = () => resolve(r.result);
+					r.onerror = reject;
+					r.readAsDataURL(file);
+				});
+			}
+			async function runViaQueue(firstArg, fnIndex, sessionHash, onStatus) {
+				const join = await fetch(`${API_BASE}/gradio_api/queue/join`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						data: [
+							firstArg,
+							document.getElementById('language').value,
+							document.getElementById('output_format').value,
+							document.getElementById('use_itn').checked,
+							document.getElementById('merge_vad').checked,
+							parseFloat(document.getElementById('merge_length').value),
+							document.getElementById('ban_emo_unk').checked
+						],
+						fn_index: fnIndex,
+						session_hash: sessionHash
+					})
+				});
+				if (!join.ok) { const t = await join.text(); throw new Error(`加入队列失败: ${join.status} ${t}`); }
+				return await new Promise((resolve, reject) => {
+					const es = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${sessionHash}`);
+					let finished = false;
+					const timeout = setTimeout(() => { if (!finished) { finished = true; es.close(); reject(new Error('处理超时')); } }, 15 * 60 * 1000);
+					es.onmessage = (e) => {
+						try {
+							const data = JSON.parse(e.data);
+							if (data.msg === 'estimation' && data.rank !== undefined) {
+								if (onStatus) onStatus(`排队中，前方还有 ${data.rank} 个任务...`);
+							} else if (data.msg === 'process_starts') {
+								if (onStatus) onStatus('开始处理...');
+							} else if (data.msg === 'process_completed') {
+								const ok = data.success === true;
+								const out = data.output || {};
+								const text = out && out.data && Array.isArray(out.data) ? (out.data[0] ?? '') : '';
+								if (!finished) { finished = true; clearTimeout(timeout); es.close(); ok ? resolve(text) : reject(new Error('服务器返回错误')); }
+							} else if (data.msg === 'queue_full') {
+								if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列已满，请稍后再试')); }
+							}
+						} catch (_) { }
+					};
+					es.onerror = () => {
+						if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列连接中断')); }
+					};
+				});
+			}
 
 			submitButton.addEventListener('click', async () => {
 				if (audioInput.files.length === 0) { statusText.textContent = '错误：请上传或录制音频。'; return; }
@@ -400,7 +453,9 @@
 				resultWrapper.style.display = 'none';
 
 				const file = audioInput.files[0];
+				const fnIndex = await getFnIndex();
 				const sessionHash = genHash();
+
 				try {
 					const form = new FormData();
 					form.append('files', file);
@@ -409,59 +464,25 @@
 					const arr = await up.json();
 					const first = Array.isArray(arr) ? arr[0] : null;
 					if (!first) throw new Error('上传响应中未找到文件信息');
-					const fileValue = typeof first === 'string' ? first : (first.path || first);
+					const pathStr = typeof first === 'string' ? first : first.path;
+					if (!pathStr) throw new Error('上传结果格式异常');
 
-					const fnIndex = await getFnIndex();
 					statusText.textContent = '已入队，排队/识别中...';
+					let text = '';
+					try {
+						const fileObj = { path: pathStr, orig_name: file.name, mime_type: file.type || null };
+						text = await runViaQueue(fileObj, fnIndex, sessionHash, (s) => statusText.textContent = s);
+					} catch (e1) {
+						statusText.textContent = '路径方式失败，尝试直接传文件...';
+						const dataUrl = await readAsDataURL(file);
+						const baseObj = { name: file.name, data: dataUrl };
+						const sessionHash2 = genHash();
+						text = await runViaQueue(baseObj, fnIndex, sessionHash2, (s) => statusText.textContent = s);
+					}
 
-					const join = await fetch(`${API_BASE}/gradio_api/queue/join`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							data: [
-								fileValue,
-								document.getElementById('language').value,
-								document.getElementById('output_format').value,
-								document.getElementById('use_itn').checked,
-								document.getElementById('merge_vad').checked,
-								parseFloat(document.getElementById('merge_length').value),
-								document.getElementById('ban_emo_unk').checked
-							],
-							fn_index: fnIndex,
-							session_hash: sessionHash
-						})
-					});
-					if (!join.ok) { const t = await join.text(); throw new Error(`加入队列失败: ${join.status} ${t}`); }
-
-					await new Promise((resolve, reject) => {
-						const es = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${sessionHash}`);
-						let finished = false;
-						const timeout = setTimeout(() => { if (!finished) { finished = true; es.close(); reject(new Error('处理超时')); } }, 15 * 60 * 1000);
-						es.onmessage = (e) => {
-							try {
-								const data = JSON.parse(e.data);
-								if (data.msg === 'process_completed') {
-									const out = data.output || {};
-									if (data.success === true && out.data) {
-										const text = Array.isArray(out.data) ? (out.data[0] ?? '') : '';
-										resultText.value = text || '';
-										statusText.textContent = '识别完成！';
-										resultWrapper.style.display = 'block';
-									} else {
-										statusText.textContent = '失败: 服务器返回错误';
-									}
-									if (!finished) { finished = true; clearTimeout(timeout); es.close(); resolve(); }
-								} else if (data.msg === 'queue_full') {
-									if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列已满，请稍后再试')); }
-								} else if (data.msg === 'estimation' && data.rank !== undefined) {
-									statusText.textContent = `排队中，前方还有 ${data.rank} 个任务...`;
-								}
-							} catch (_) { }
-						};
-						es.onerror = () => {
-							if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列连接中断')); }
-						};
-					});
+					statusText.textContent = '识别完成！';
+					resultText.value = text || '';
+					resultWrapper.style.display = 'block';
 				} catch (e) {
 					statusText.textContent = `失败: ${e.message || e}`;
 				} finally {
