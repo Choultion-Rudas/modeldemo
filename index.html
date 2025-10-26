@@ -5,16 +5,12 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>SenseVoice-Small</title>
-
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400;500;700&display=swap"
 		rel="stylesheet">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-
 	<script type="module" src="https://unpkg.com/@material/web/all.js?module"></script>
-	<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
-
 	<style>
 		:root {
 			color-scheme: light;
@@ -52,7 +48,7 @@
 			--md-sys-color-surface-container-high: #eae7eb;
 			--md-sys-color-surface-container: #efedf1;
 			--md-sys-color-surface-container-low: #f5f3f7;
-			--md-sys-color-surface-container-lowest: #ffffff;
+			--md-sys-color-surface-container-lowest: #ffffff
 		}
 
 		@media (prefers-color-scheme: dark) {
@@ -92,7 +88,7 @@
 				--md-sys-color-surface-container-high: #2a2a2e;
 				--md-sys-color-surface-container: #1f2023;
 				--md-sys-color-surface-container-low: #1b1b1f;
-				--md-sys-color-surface-container-lowest: #0d0f13;
+				--md-sys-color-surface-container-lowest: #0d0f13
 			}
 		}
 
@@ -106,7 +102,7 @@
 			padding: 1.5rem;
 			min-height: 100vh;
 			box-sizing: border-box;
-			transition: background-color .3s ease;
+			transition: background-color .3s ease
 		}
 
 		.card {
@@ -115,82 +111,82 @@
 			background-color: var(--md-sys-color-surface);
 			border-radius: 16px;
 			padding: 24px;
-			transition: background-color .3s ease, outline .2s ease;
+			transition: background-color .3s ease, outline .2s ease
 		}
 
 		.card.drag-over {
 			outline: 2px dashed var(--md-sys-color-primary);
-			outline-offset: -8px;
+			outline-offset: -8px
 		}
 
 		.header {
 			text-align: center;
-			margin-bottom: 24px;
+			margin-bottom: 24px
 		}
 
 		.header h1 {
 			color: var(--md-sys-color-primary);
 			font-size: 28px;
 			font-weight: 700;
-			margin: 0 0 12px 0;
+			margin: 0 0 12px 0
 		}
 
 		.header p {
 			margin: 4px 0;
-			color: var(--md-sys-color-on-surface-variant);
+			color: var(--md-sys-color-on-surface-variant)
 		}
 
 		.header .subtitle {
 			font-size: .8rem;
-			color: var(--md-sys-color-outline);
+			color: var(--md-sys-color-outline)
 		}
 
 		.form-group,
 		.checkbox-group {
-			margin-bottom: 20px;
+			margin-bottom: 20px
 		}
 
 		.checkbox-group {
 			display: flex;
 			align-items: center;
 			cursor: pointer;
-			color: var(--md-sys-color-on-surface-variant);
+			color: var(--md-sys-color-on-surface-variant)
 		}
 
 		md-checkbox {
-			margin-right: 8px;
+			margin-right: 8px
 		}
 
 		.file-upload-wrapper {
 			display: flex;
 			flex-direction: column;
 			align-items: flex-start;
-			gap: 8px;
+			gap: 8px
 		}
 
 		.file-controls {
 			display: flex;
 			align-items: center;
-			gap: 16px;
+			gap: 16px
 		}
 
 		.drop-hint {
 			display: none;
 			font-size: .8rem;
 			color: var(--md-sys-color-outline);
-			margin: 0;
+			margin: 0
 		}
 
-		@media (pointer: fine) {
+		@media (pointer:fine) {
 			.drop-hint {
-				display: block;
+				display: block
 			}
 		}
 
 		.slider-group label {
 			color: var(--md-sys-color-on-surface-variant);
 			font-size: .9rem;
-			margin-bottom: 8px;
+			margin-bottom: 8px
 		}
 
 		.button-wrapper {
@@ -198,42 +194,42 @@
 			justify-content: flex-end;
 			align-items: center;
 			gap: 16px;
-			margin-top: 24px;
+			margin-top: 24px
 		}
 
 		.result-wrapper {
-			margin-top: 24px;
+			margin-top: 24px
 		}
 
 		.result-header {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			margin-bottom: 8px;
+			margin-bottom: 8px
 		}
 
 		.result-header label {
 			font-weight: 500;
-			color: var(--md-sys-color-on-surface-variant);
+			color: var(--md-sys-color-on-surface-variant)
 		}
 
 		#audio_input {
-			display: none;
+			display: none
 		}
 
 		md-filled-select,
 		md-outlined-text-field {
-			width: 100%;
+			width: 100%
 		}
 
 		md-outlined-text-field {
-			--md-outlined-text-field-container-shape: 8px;
+			--md-outlined-text-field-container-shape: 8px
 		}
 
 		details {
 			border-top: 1px solid var(--md-sys-color-outline);
 			margin-top: 24px;
-			padding-top: 20px;
+			padding-top: 20px
 		}
 
 		details>summary {
@@ -241,26 +237,26 @@
 			font-weight: 500;
 			font-size: 1rem;
 			color: var(--md-sys-color-primary);
-			list-style: none;
+			list-style: none
 		}
 
 		details>summary::-webkit-details-marker {
-			display: none;
+			display: none
 		}
 
 		.details-content-wrapper {
 			display: grid;
 			grid-template-rows: 0fr;
-			transition: grid-template-rows .3s ease-in-out;
+			transition: grid-template-rows .3s ease-in-out
 		}
 
 		details[open]>.details-content-wrapper {
-			grid-template-rows: 1fr;
+			grid-template-rows: 1fr
 		}
 
 		.advanced-settings-content {
 			padding-top: 20px;
-			overflow: hidden;
+			overflow: hidden
 		}
 	</style>
 </head>
@@ -272,19 +268,15 @@
 			<p>SenseVoice 是具有音频理解能力的音频基础模型，包括语音识别（ASR）、语种识别（LID）、语音情感识别（SER）和声学事件分类（AEC）或声学事件检测（AED）。</p>
 			<p class="subtitle">支持 MP3, WAV, FLAC, M4A 等常见音频格式。</p>
 		</div>
-
 		<div class="form-group file-upload-wrapper">
 			<div class="file-controls">
-				<md-filled-button id="upload-button">
-					<span class="material-icons" slot="icon">upload_file</span>
-					上传音频
-				</md-filled-button>
+				<md-filled-button id="upload-button"><span class="material-icons"
+						slot="icon">upload_file</span>上传音频</md-filled-button>
 				<span id="file-name-label">尚未选择文件</span>
 			</div>
 			<p class="drop-hint">或拖拽文件至此区域</p>
 			<input type="file" id="audio_input" accept="audio/*">
 		</div>
-
 		<div class="form-group">
 			<md-filled-select id="language" label="源语言">
 				<md-select-option value="auto" selected>
@@ -310,7 +302,6 @@
 				</md-select-option>
 			</md-filled-select>
 		</div>
-
 		<div class="form-group">
 			<md-filled-select id="output_format" label="输出格式">
 				<md-select-option value="纯净文本" selected>
@@ -324,7 +315,6 @@
 				</md-select-option>
 			</md-filled-select>
 		</div>
-
 		<details>
 			<summary>高级设置</summary>
 			<div class="details-content-wrapper">
@@ -333,39 +323,28 @@
 						<label id="slider-label">断句最大长度（秒）：15s</label>
 						<md-slider id="merge_length" min="5" max="30" value="15" step="1" labeled></md-slider>
 					</div>
-					<label class="checkbox-group" for="use_itn">
-						<md-checkbox id="use_itn" checked></md-checkbox>
-						自动添加标点与格式化
-					</label>
-					<label class="checkbox-group" for="merge_vad">
-						<md-checkbox id="merge_vad" checked></md-checkbox>
-						优化长音频断句
-					</label>
-					<label class="checkbox-group" for="ban_emo_unk">
-						<md-checkbox id="ban_emo_unk"></md-checkbox>
-						强制情感分类
-					</label>
+					<label class="checkbox-group" for="use_itn"><md-checkbox id="use_itn"
+							checked></md-checkbox>自动添加标点与格式化</label>
+					<label class="checkbox-group" for="merge_vad"><md-checkbox id="merge_vad"
+							checked></md-checkbox>优化长音频断句</label>
+					<label class="checkbox-group" for="ban_emo_unk"><md-checkbox
+							id="ban_emo_unk"></md-checkbox>强制情感分类</label>
 				</div>
 			</div>
 		</details>
-
 		<div class="button-wrapper">
 			<p id="status-text"></p>
 			<md-circular-progress indeterminate style="display: none;" id="loader"></md-circular-progress>
 			<md-filled-button id="submit-button">开始识别</md-filled-button>
 		</div>
-
 		<div class="result-wrapper" id="result-wrapper" style="display: none;">
 			<div class="result-header">
 				<label>识别结果</label>
-				<md-icon-button id="copy-button">
-					<md-icon>content_copy</md-icon>
-				</md-icon-button>
+				<md-icon-button id="copy-button"><md-icon>content_copy</md-icon></md-icon-button>
 			</div>
 			<md-outlined-text-field id="result-text" type="textarea" rows="8" readonly></md-outlined-text-field>
 		</div>
 	</div>
-
 	<script type="module">
 		document.addEventListener('DOMContentLoaded', () => {
 			const dropZone = document.getElementById('drop-zone');
@@ -382,100 +361,99 @@
 			const sliderLabel = document.getElementById('slider-label');
 
 			uploadButton.addEventListener('click', () => audioInput.click());
+			audioInput.addEventListener('change', () => { if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name; });
+			mergeLengthSlider.addEventListener('input', () => { sliderLabel.textContent = `断句最大长度（秒）：${mergeLengthSlider.value}s`; });
+			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); }, false));
+			['dragenter', 'dragover'].forEach(n => dropZone.addEventListener(n, () => dropZone.classList.add('drag-over'), false));
+			['dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, () => dropZone.classList.remove('drag-over'), false));
+			dropZone.addEventListener('drop', e => { const files = e.dataTransfer.files; if (files.length > 0) { audioInput.files = files; fileNameLabel.textContent = files[0].name; } }, false);
+			copyButton.addEventListener('click', () => { navigator.clipboard.writeText(resultText.value).then(() => { const icon = copyButton.querySelector('md-icon'); icon.textContent = 'check'; setTimeout(() => { icon.textContent = 'content_copy'; }, 1000); }); });
 
-			audioInput.addEventListener('change', () => {
-				if (audioInput.files.length > 0) {
-					fileNameLabel.textContent = audioInput.files[0].name;
+			const API_BASE = '/api';
+			let cachedFnIndex = null;
+			async function getFnIndex() {
+				if (cachedFnIndex !== null) return cachedFnIndex;
+				let resp = await fetch(`${API_BASE}/gradio_api/config`);
+				if (!resp.ok) resp = await fetch(`${API_BASE}/config`);
+				const cfg = await resp.json().catch(() => ({}));
+				let idx = 0;
+				if (cfg && cfg.named_endpoints && (cfg.named_endpoints['/model_inference'] !== undefined)) {
+					idx = cfg.named_endpoints['/model_inference'];
+				} else if (cfg && cfg.dependencies) {
+					for (let i = 0; i < cfg.dependencies.length; i++) {
+						const d = cfg.dependencies[i];
+						if (d && (d.api_name === '/model_inference' || d.api_name === 'model_inference')) { idx = i; break; }
+					}
 				}
-			});
-
-			mergeLengthSlider.addEventListener('input', () => {
-				sliderLabel.textContent = `断句最大长度（秒）：${mergeLengthSlider.value}s`;
-			});
-
-			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(n =>
-				dropZone.addEventListener(n, e => {
-					e.preventDefault();
-					e.stopPropagation();
-				}, false)
-			);
-
-			['dragenter', 'dragover'].forEach(n =>
-				dropZone.addEventListener(n, () => dropZone.classList.add('drag-over'), false)
-			);
-
-			['dragleave', 'drop'].forEach(n =>
-				dropZone.addEventListener(n, () => dropZone.classList.remove('drag-over'), false)
-			);
-
-			dropZone.addEventListener('drop', e => {
-				const files = e.dataTransfer.files;
-				if (files.length > 0) {
-					audioInput.files = files;
-					fileNameLabel.textContent = files[0].name;
-				}
-			}, false);
-
-			copyButton.addEventListener('click', () => {
-				navigator.clipboard.writeText(resultText.value).then(() => {
-					const icon = copyButton.querySelector('md-icon');
-					icon.textContent = 'check';
-					setTimeout(() => {
-						icon.textContent = 'content_copy';
-					}, 1000);
-				});
-			});
-
-			let clientPromise = null;
-
-			function getClient() {
-				if (!clientPromise) {
-					const { Client } = window.gradio;
-					clientPromise = Client.connect(new URL('/api', location.origin).toString());
-				}
-				return clientPromise;
+				cachedFnIndex = idx;
+				return idx;
 			}
+			function genHash() { return Math.random().toString(36).slice(2); }
 
 			submitButton.addEventListener('click', async () => {
-				if (audioInput.files.length === 0) {
-					statusText.textContent = '错误：请上传或录制音频。';
-					return;
-				}
-
+				if (audioInput.files.length === 0) { statusText.textContent = '错误：请上传或录制音频。'; return; }
 				submitButton.disabled = true;
 				loader.style.display = 'block';
-				statusText.textContent = '准备识别...';
+				statusText.textContent = '准备上传...';
 				resultWrapper.style.display = 'none';
-
-				const audioFile = audioInput.files[0];
-
+				const file = audioInput.files[0];
 				try {
-					const client = await getClient();
-					statusText.textContent = '排队/识别中...';
+					const form = new FormData();
+					form.append('files', file);
+					const up = await fetch(`${API_BASE}/gradio_api/upload`, { method: 'POST', body: form });
+					if (!up.ok) { const t = await up.text(); throw new Error(`文件上传失败: ${up.status} ${t}`); }
+					const arr = await up.json();
+					const first = Array.isArray(arr) ? arr[0] : null;
+					if (!first) throw new Error('上传响应中未找到文件信息');
+					const fileValue = typeof first === 'string' ? { path: first } : first;
 
-					const res = await client.predict("/model_inference", [
-						audioFile,
-						document.getElementById('language').value,
-						document.getElementById('output_format').value,
-						document.getElementById('use_itn').checked,
-						document.getElementById('merge_vad').checked,
-						parseFloat(document.getElementById('merge_length').value),
-						document.getElementById('ban_emo_unk').checked
-					]);
+					const fnIndex = await getFnIndex();
+					const sessionHash = genHash();
+					statusText.textContent = '已入队，排队/识别中...';
 
-					let text = '';
-					if (Array.isArray(res)) {
-						text = res[0] ?? '';
-					} else if (res && typeof res === 'object' && 'data' in res) {
-						text = res.data?.[0] ?? '';
-					} else {
-						text = String(res ?? '');
-					}
+					const join = await fetch(`${API_BASE}/gradio_api/queue/join`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							data: [
+								fileValue,
+								document.getElementById('language').value,
+								document.getElementById('output_format').value,
+								document.getElementById('use_itn').checked,
+								document.getElementById('merge_vad').checked,
+								parseFloat(document.getElementById('merge_length').value),
+								document.getElementById('ban_emo_unk').checked
+							],
+							fn_index: fnIndex,
+							session_hash: sessionHash
+						})
+					});
+					if (!join.ok) { const t = await join.text(); throw new Error(`加入队列失败: ${join.status} ${t}`); }
 
-					statusText.textContent = '识别完成！';
-					resultText.value = text;
-					resultWrapper.style.display = 'block';
-
+					await new Promise((resolve, reject) => {
+						const es = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${sessionHash}`);
+						let finished = false;
+						const timeout = setTimeout(() => { if (!finished) { finished = true; es.close(); reject(new Error('处理超时')); } }, 15 * 60 * 1000);
+						es.onmessage = (e) => {
+							try {
+								const data = JSON.parse(e.data);
+								if (data.msg === 'process_completed') {
+									const text = data.output && data.output.data ? (data.output.data[0] ?? '') : '';
+									resultText.value = text;
+									statusText.textContent = '识别完成！';
+									resultWrapper.style.display = 'block';
+									if (!finished) { finished = true; clearTimeout(timeout); es.close(); resolve(); }
+								} else if (data.msg === 'queue_full') {
+									if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列已满，请稍后再试')); }
+								} else if (data.msg === 'estimation' && data.rank !== undefined) {
+									statusText.textContent = `排队中，前方还有 ${data.rank} 个任务...`;
+								}
+							} catch (_) { }
+						};
+						es.onerror = () => {
+							if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列连接中断')); }
+						};
+					});
 				} catch (e) {
 					statusText.textContent = `失败: ${e.message || e}`;
 				} finally {
