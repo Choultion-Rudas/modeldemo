@@ -105,7 +105,7 @@
 			padding: 1.5rem;
 			min-height: 100vh;
 			box-sizing: border-box;
-			transition: background-color 0.3s ease;
+			transition: background-color .3s ease;
 		}
 
 		.card {
@@ -114,7 +114,7 @@
 			background-color: var(--md-sys-color-surface);
 			border-radius: 16px;
 			padding: 24px;
-			transition: background-color 0.3s ease, outline 0.2s ease;
+			transition: background-color .3s ease, outline .2s ease;
 		}
 
 		.card.drag-over {
@@ -140,7 +140,7 @@
 		}
 
 		.header .subtitle {
-			font-size: 0.8rem;
+			font-size: .8rem;
 			color: var(--md-sys-color-outline);
 		}
 
@@ -175,7 +175,7 @@
 
 		.drop-hint {
 			display: none;
-			font-size: 0.8rem;
+			font-size: .8rem;
 			color: var(--md-sys-color-outline);
 			margin: 0;
 		}
@@ -188,7 +188,7 @@
 
 		.slider-group label {
 			color: var(--md-sys-color-on-surface-variant);
-			font-size: 0.9rem;
+			font-size: .9rem;
 			margin-bottom: 8px;
 		}
 
@@ -250,7 +250,7 @@
 		.details-content-wrapper {
 			display: grid;
 			grid-template-rows: 0fr;
-			transition: grid-template-rows 0.3s ease-in-out;
+			transition: grid-template-rows .3s ease-in-out;
 		}
 
 		details[open]>.details-content-wrapper {
@@ -265,7 +265,6 @@
 </head>
 
 <body>
-
 	<div class="card" id="drop-zone">
 		<div class="header">
 			<h1>SenseVoice-Small 语音识别</h1>
@@ -310,6 +309,7 @@
 				</md-select-option>
 			</md-filled-select>
 		</div>
+
 		<div class="form-group">
 			<md-filled-select id="output_format" label="输出格式">
 				<md-select-option value="纯净文本" selected>
@@ -332,12 +332,18 @@
 						<label id="slider-label">断句最大长度（秒）：15s</label>
 						<md-slider id="merge_length" min="5" max="30" value="15" step="1" labeled></md-slider>
 					</div>
-					<label class="checkbox-group" for="use_itn"><md-checkbox id="use_itn"
-							checked></md-checkbox>自动添加标点与格式化</label>
-					<label class="checkbox-group" for="merge_vad"><md-checkbox id="merge_vad"
-							checked></md-checkbox>优化长音频断句</label>
-					<label class="checkbox-group" for="ban_emo_unk"><md-checkbox
-							id="ban_emo_unk"></md-checkbox>强制情感分类</label>
+					<label class="checkbox-group" for="use_itn">
+						<md-checkbox id="use_itn" checked></md-checkbox>
+						自动添加标点与格式化
+					</label>
+					<label class="checkbox-group" for="merge_vad">
+						<md-checkbox id="merge_vad" checked></md-checkbox>
+						优化长音频断句
+					</label>
+					<label class="checkbox-group" for="ban_emo_unk">
+						<md-checkbox id="ban_emo_unk"></md-checkbox>
+						强制情感分类
+					</label>
 				</div>
 			</div>
 		</details>
@@ -351,7 +357,9 @@
 		<div class="result-wrapper" id="result-wrapper" style="display: none;">
 			<div class="result-header">
 				<label>识别结果</label>
-				<md-icon-button id="copy-button"><md-icon>content_copy</md-icon></md-icon-button>
+				<md-icon-button id="copy-button">
+					<md-icon>content_copy</md-icon>
+				</md-icon-button>
 			</div>
 			<md-outlined-text-field id="result-text" type="textarea" rows="8" readonly></md-outlined-text-field>
 		</div>
@@ -373,17 +381,32 @@
 			const sliderLabel = document.getElementById('slider-label');
 
 			uploadButton.addEventListener('click', () => audioInput.click());
+
 			audioInput.addEventListener('change', () => {
-				if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name;
+				if (audioInput.files.length > 0) {
+					fileNameLabel.textContent = audioInput.files[0].name;
+				}
 			});
 
 			mergeLengthSlider.addEventListener('input', () => {
 				sliderLabel.textContent = `断句最大长度（秒）：${mergeLengthSlider.value}s`;
 			});
 
-			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }, false));
-			['dragenter', 'dragover'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.add('drag-over'), false));
-			['dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.remove('drag-over'), false));
+			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(n =>
+				dropZone.addEventListener(n, e => {
+					e.preventDefault();
+					e.stopPropagation();
+				}, false)
+			);
+
+			['dragenter', 'dragover'].forEach(n =>
+				dropZone.addEventListener(n, () => dropZone.classList.add('drag-over'), false)
+			);
+
+			['dragleave', 'drop'].forEach(n =>
+				dropZone.addEventListener(n, () => dropZone.classList.remove('drag-over'), false)
+			);
+
 			dropZone.addEventListener('drop', e => {
 				const files = e.dataTransfer.files;
 				if (files.length > 0) {
@@ -396,18 +419,31 @@
 				navigator.clipboard.writeText(resultText.value).then(() => {
 					const icon = copyButton.querySelector('md-icon');
 					icon.textContent = 'check';
-					setTimeout(() => { icon.textContent = 'content_copy'; }, 1000);
+					setTimeout(() => {
+						icon.textContent = 'content_copy';
+					}, 1000);
 				});
 			});
 
-			const readFileAsDataURL = (file) => {
-				return new Promise((resolve, reject) => {
-					const reader = new FileReader();
-					reader.onload = () => resolve(reader.result);
-					reader.onerror = reject;
-					reader.readAsDataURL(file);
+			const API_BASE_URL = "/api";
+
+			async function callPredict(payload) {
+				let resp = await fetch(`${API_BASE_URL}/run/model_inference`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
 				});
-			};
+
+				if (!resp.ok && (resp.status === 404 || resp.status === 405)) {
+					resp = await fetch(`${API_BASE_URL}/gradio_api/run/model_inference`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(payload)
+					});
+				}
+
+				return resp;
+			}
 
 			submitButton.addEventListener('click', async () => {
 				if (audioInput.files.length === 0) {
@@ -417,37 +453,49 @@
 
 				submitButton.disabled = true;
 				loader.style.display = 'block';
-				statusText.textContent = '准备文件中...';
+				statusText.textContent = '准备上传...';
 				resultWrapper.style.display = 'none';
 
 				const audioFile = audioInput.files[0];
-				const API_BASE_URL = "/api";
 
 				try {
-					const audioDataUrl = await readFileAsDataURL(audioFile);
-					statusText.textContent = '文件编码完成，开始识别...';
+					statusText.textContent = '上传文件中 (步骤 1/2)...';
+					const uploadData = new FormData();
+					uploadData.append("files", audioFile);
+
+					const uploadResponse = await fetch(`${API_BASE_URL}/gradio_api/upload`, {
+						method: 'POST',
+						body: uploadData
+					});
+
+					if (!uploadResponse.ok) {
+						const errorText = await uploadResponse.text();
+						throw new Error(`文件上传失败: ${uploadResponse.status} ${errorText}`);
+					}
+
+					const uploadResult = await uploadResponse.json();
+					const uploaded = uploadResult && uploadResult[0];
+
+					if (!uploaded) {
+						throw new Error("上传响应中未找到文件信息");
+					}
+
+					statusText.textContent = '上传完成，开始识别 (步骤 2/2)...';
 
 					const predictPayload = {
 						data: [
-							{
-								"name": audioFile.name,
-								"data": audioDataUrl
-							},
+							uploaded,
 							document.getElementById('language').value,
 							document.getElementById('output_format').value,
 							document.getElementById('use_itn').checked,
 							document.getElementById('merge_vad').checked,
 							parseFloat(document.getElementById('merge_length').value),
-							document.getElementById('ban_emo_unk').checked,
+							document.getElementById('ban_emo_unk').checked
 						],
 						fn_index: 0
 					};
 
-					const response = await fetch(`${API_BASE_URL}/run/model_inference`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(predictPayload),
-					});
+					const response = await callPredict(predictPayload);
 
 					if (!response.ok) {
 						const errText = await response.text();
@@ -455,16 +503,16 @@
 					}
 
 					const result = await response.json();
+
 					if (result.error) {
 						throw new Error(result.error);
 					}
 
 					statusText.textContent = '识别完成！';
-					resultText.value = result.data[0];
+					resultText.value = result.data && result.data[0] ? result.data[0] : '';
 					resultWrapper.style.display = 'block';
 
 				} catch (error) {
-					console.error("处理失败:", error);
 					statusText.textContent = `失败: ${error.message}`;
 				} finally {
 					submitButton.disabled = false;
@@ -473,7 +521,6 @@
 			});
 		});
 	</script>
-
 </body>
 
 </html>

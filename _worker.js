@@ -8,36 +8,35 @@ export default {
 					status: 204,
 					headers: {
 						'Access-Control-Allow-Origin': '*',
-						'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-						'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || '*',
+						'Access-Control-Allow-Methods': 'GET,HEAD,POST,OPTIONS',
+						'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || 'content-type',
+						'Access-Control-Max-Age': '86400',
+						'Vary': 'Origin'
 					}
 				});
 			}
 
-			const targetPath = url.pathname.replace(/^\/api/, '');
-			const targetUrl = new URL(targetPath + url.search, 'https://choultion-rudas-sensevoice.hf.space');
+			const target = new URL(
+				url.pathname.replace(/^\/api/, '') + url.search,
+				'https://choultion-rudas-sensevoice.hf.space'
+			);
 
-			const hfHeaders = new Headers(request.headers);
-			hfHeaders.set('Host', 'choultion-rudas-sensevoice.hf.space');
-
-			const hfRequest = new Request(targetUrl.toString(), {
+			const upstream = await fetch(target.toString(), {
 				method: request.method,
-				headers: hfHeaders,
-				body: request.body,
+				headers: request.headers,
+				body: (request.method === 'GET' || request.method === 'HEAD') ? undefined : request.body,
 				redirect: 'follow'
 			});
 
-			const hfResponse = await fetch(hfRequest);
+			const h = new Headers(upstream.headers);
+			h.set('Access-Control-Allow-Origin', '*');
+			h.append('Vary', 'Origin');
 
-			const response = new Response(hfResponse.body, {
-				status: hfResponse.status,
-				statusText: hfResponse.statusText,
-				headers: hfResponse.headers
+			return new Response(upstream.body, {
+				status: upstream.status,
+				statusText: upstream.statusText,
+				headers: h
 			});
-
-			response.headers.set('Access-Control-Allow-Origin', '*');
-
-			return response;
 		}
 
 		return env.ASSETS.fetch(request);
