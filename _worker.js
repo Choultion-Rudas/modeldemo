@@ -19,7 +19,7 @@ export default {
 			}
 
 			const targetPath = url.pathname.replace('/api', '');
-			const targetUrl = new URL(targetPath + url.search, `httpshttps://${HF_HOSTNAME}`);
+			const targetUrl = new URL(targetPath + url.search, `https://${HF_HOSTNAME}`);
 
 			const hfHeaders = new Headers(request.headers);
 			hfHeaders.set('Host', HF_HOSTNAME);
