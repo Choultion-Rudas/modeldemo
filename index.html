@@ -340,7 +340,8 @@
 		<div class="result-wrapper" id="result-wrapper" style="display: none;">
 			<div class="result-header">
 				<label>识别结果</label>
-				<md-icon-button id="copy-button"><md-icon>content_copy</md-icon></md-icon-button>
+				<md-icon-button id="copy-button"><span id="copy-icon" class="material-icons"
+						slot="icon">content_copy</span></md-icon-button>
 			</div>
 			<md-outlined-text-field id="result-text" type="textarea" rows="8" readonly></md-outlined-text-field>
 		</div>
@@ -357,6 +358,7 @@
 			const resultWrapper = document.getElementById('result-wrapper');
 			const resultText = document.getElementById('result-text');
 			const copyButton = document.getElementById('copy-button');
+			const copyIcon = document.getElementById('copy-icon');
 			const mergeLengthSlider = document.getElementById('merge_length');
 			const sliderLabel = document.getElementById('slider-label');
 
@@ -367,7 +369,7 @@
 			['dragenter', 'dragover'].forEach(n => dropZone.addEventListener(n, () => dropZone.classList.add('drag-over'), false));
 			['dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, () => dropZone.classList.remove('drag-over'), false));
 			dropZone.addEventListener('drop', e => { const files = e.dataTransfer.files; if (files.length > 0) { audioInput.files = files; fileNameLabel.textContent = files[0].name; } }, false);
-			copyButton.addEventListener('click', () => { navigator.clipboard.writeText(resultText.value).then(() => { const icon = copyButton.querySelector('md-icon'); icon.textContent = 'check'; setTimeout(() => { icon.textContent = 'content_copy'; }, 1000); }); });
+			copyButton.addEventListener('click', () => { navigator.clipboard.writeText(resultText.value || '').then(() => { copyIcon.textContent = 'check'; setTimeout(() => { copyIcon.textContent = 'content_copy'; }, 1000); }); });
 
 			const API_BASE = '/api';
 			let cachedFnIndex = null;
@@ -396,19 +398,20 @@
 				loader.style.display = 'block';
 				statusText.textContent = '准备上传...';
 				resultWrapper.style.display = 'none';
+
 				const file = audioInput.files[0];
+				const sessionHash = genHash();
 				try {
 					const form = new FormData();
 					form.append('files', file);
-					const up = await fetch(`${API_BASE}/gradio_api/upload`, { method: 'POST', body: form });
+					const up = await fetch(`${API_BASE}/gradio_api/upload?upload_id=${sessionHash}`, { method: 'POST', body: form });
 					if (!up.ok) { const t = await up.text(); throw new Error(`文件上传失败: ${up.status} ${t}`); }
 					const arr = await up.json();
 					const first = Array.isArray(arr) ? arr[0] : null;
 					if (!first) throw new Error('上传响应中未找到文件信息');
-					const fileValue = typeof first === 'string' ? { path: first } : first;
+					const fileValue = typeof first === 'string' ? first : (first.path || first);
 
 					const fnIndex = await getFnIndex();
-					const sessionHash = genHash();
 					statusText.textContent = '已入队，排队/识别中...';
 
 					const join = await fetch(`${API_BASE}/gradio_api/queue/join`, {
@@ -438,10 +441,15 @@
 							try {
 								const data = JSON.parse(e.data);
 								if (data.msg === 'process_completed') {
-									const text = data.output && data.output.data ? (data.output.data[0] ?? '') : '';
-									resultText.value = text;
-									statusText.textContent = '识别完成！';
-									resultWrapper.style.display = 'block';
+									const out = data.output || {};
+									if (data.success === true && out.data) {
+										const text = Array.isArray(out.data) ? (out.data[0] ?? '') : '';
+										resultText.value = text || '';
+										statusText.textContent = '识别完成！';
+										resultWrapper.style.display = 'block';
+									} else {
+										statusText.textContent = '失败: 服务器返回错误';
+									}
 									if (!finished) { finished = true; clearTimeout(timeout); es.close(); resolve(); }
 								} else if (data.msg === 'queue_full') {
 									if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列已满，请稍后再试')); }
