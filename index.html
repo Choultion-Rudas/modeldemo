@@ -76,16 +76,13 @@
 			box-sizing: border-box;
 		}
 
-		.card {
+		.container {
 			max-width: 700px;
 			width: 100%;
-			background-color: var(--md-sys-color-surface-container-lowest);
-			border-radius: 16px;
-			padding: 24px;
-			border: 1px solid var(--md-sys-color-outline-variant);
 		}
 
-		.card.drag-over {
+		.container.drag-over {
+			border-radius: 16px;
 			outline: 2px dashed var(--md-sys-color-primary);
 			outline-offset: -8px;
 		}
@@ -192,6 +189,14 @@
 			flex-wrap: wrap;
 		}
 
+		#audio_input {
+			display: none;
+		}
+
+		md-filled-select {
+			width: 100%;
+		}
+
 		md-outlined-text-field {
 			width: 100%;
 			--md-outlined-text-field-container-shape: 8px;
@@ -200,15 +205,6 @@
 		md-outlined-text-field textarea {
 			resize: none;
 			overflow-y: hidden;
-		}
-
-		#audio_input {
-			display: none;
-		}
-
-		md-filled-select,
-		md-outlined-select {
-			width: 100%;
 		}
 
 		details {
@@ -268,7 +264,7 @@
 </head>
 
 <body>
-	<div class="card" id="drop-zone">
+	<div class="container" id="drop-zone">
 		<div class="header">
 			<h1>SenseVoice-Small 语音识别</h1>
 			<p>SenseVoice 是具有音频理解能力的音频基础模型，包括语音识别（ASR）、语种识别（LID）、语音情感识别（SER）和声学事件分类（AEC）或声学事件检测（AED）。</p>
@@ -332,7 +328,10 @@
 		<div class="button-wrapper">
 			<p id="status-text"></p>
 			<md-circular-progress indeterminate style="display: none;" id="loader"></md-circular-progress>
-			<md-filled-button id="submit-button">开始识别</md-filled-button>
+			<md-filled-button id="submit-button">
+				<md-icon slot="icon" id="submit-icon">play_arrow</md-icon>
+				<span id="submit-text">开始识别</span>
+			</md-filled-button>
 		</div>
 		<div class="progress-wrapper" id="progress-wrapper" style="display: none;">
 			<label id="progress-label">正在上传...</label>
@@ -341,7 +340,7 @@
 
 		<div class="result-wrapper" id="result-wrapper" style="display: none;">
 			<div class="result-header">
-				<md-outlined-select id="result-format-select" label="显示格式" style="width: 160px;">
+				<md-filled-select id="result-format-select" label="显示格式" style="width: 160px;">
 					<md-select-option value="纯净文本" selected>
 						<div slot="headline">纯净文本</div>
 					</md-select-option>
@@ -351,8 +350,7 @@
 					<md-select-option value="Emoji 格式">
 						<div slot="headline">Emoji 格式</div>
 					</md-select-option>
-				</md-outlined-select>
-
+				</md-filled-select>
 				<div style="position: relative;">
 					<md-filled-button id="copy-menu-button">
 						<md-icon slot="icon">content_copy</md-icon>复制
@@ -377,8 +375,8 @@
 
 	<script type="module">
 		const D = document;
-		const audioInput = D.getElementById('audio_input'), dropZone = D.getElementById('drop-zone'), fileNameLabel = D.getElementById('file-name-label'), submitButton = D.getElementById('submit-button'), statusText = D.getElementById('status-text'), loader = D.getElementById('loader'), progressWrapper = D.getElementById('progress-wrapper'), progressLabel = D.getElementById('progress-label'), progressBar = D.getElementById('progress-bar'), resultWrapper = D.getElementById('result-wrapper'), resultFormatSelect = D.getElementById('result-format-select'), resultText = D.getElementById('result-text'), copyMenuButton = D.getElementById('copy-menu-button'), copyMenu = D.getElementById('copy-menu'), toast = D.getElementById('toast');
-		const API_BASE = '/api';
+		const audioInput = D.getElementById('audio_input'), dropZone = D.getElementById('drop-zone'), fileNameLabel = D.getElementById('file-name-label'), submitButton = D.getElementById('submit-button'), submitIcon = D.getElementById('submit-icon'), submitText = D.getElementById('submit-text'), statusText = D.getElementById('status-text'), loader = D.getElementById('loader'), progressWrapper = D.getElementById('progress-wrapper'), progressLabel = D.getElementById('progress-label'), progressBar = D.getElementById('progress-bar'), resultWrapper = D.getElementById('result-wrapper'), resultFormatSelect = D.getElementById('result-format-select'), resultText = D.getElementById('result-text'), copyMenuButton = D.getElementById('copy-menu-button'), copyMenu = D.getElementById('copy-menu'), toast = D.getElementById('toast');
+		const API_BASE = '/api', MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
 		let cachedFnIndex = null, rawRecognitionResult = '', etaInterval;
 
 		const emoji_dict_full = { "<|nospeech|><|Event_UNK|>": "❓", "<|zh|>": "", "<|en|>": "", "<|yue|>": "", "<|ja|>": "", "<|ko|>": "", "<|nospeech|>": "", "<|HAPPY|>": "😊", "<|SAD|>": "😔", "<|ANGRY|>": "😡", "<|NEUTRAL|>": "", "<|BGM|>": "🎼", "<|Speech|>": "", "<|Applause|>": "👏", "<|Laughter|>": "😀", "<|FEARFUL|>": "😰", "<|DISGUSTED|>": "🤢", "<|SURPRISED|>": "😮", "<|Cry|>": "😭", "<|EMO_UNKNOWN|>": "", "<|Sneeze|>": "🤧", "<|Breath|>": "", "<|Cough|>": "😷", "<|Sing|>": "", "<|Speech_Noise|>": "", "<|withitn|>": "", "<|woitn|>": "", "<|GBG|>": "", "<|Event_UNK|>": "" }, emo_dict_map = { "<|HAPPY|>": "😊", "<|SAD|>": "😔", "<|ANGRY|>": "😡", "<|NEUTRAL|>": "", "<|FEARFUL|>": "😰", "<|DISGUSTED|>": "🤢", "<|SURPRISED|>": "😮" }, event_dict = { "<|BGM|>": "🎼", "<|Speech|>": "", "<|Applause|>": "👏", "<|Laughter|>": "😀", "<|Cry|>": "😭", "<|Sneeze|>": "🤧", "<|Breath|>": "", "<|Cough|>": "🤧" }, lang_dict = { "<|zh|>": "<|lang|>", "<|en|>": "<|lang|>", "<|yue|>": "<|lang|>", "<|ja|>": "<|lang|>", "<|ko|>": "<|lang|>", "<|nospeech|>": "<|lang|>" }, emo_set = new Set(["😊", "😔", "😡", "😰", "🤢", "😮"]), event_set = new Set(["🎼", "👏", "😀", "😭", "🤧", "😷"]);
@@ -388,10 +386,11 @@
 		function showToast(t) { toast.textContent = t, toast.classList.add("show"), setTimeout(() => { toast.classList.remove("show") }, 2e3) }
 		function adjustTextareaHeight() { const t = resultText.shadowRoot.querySelector("textarea"); t && (t.style.height = "auto", t.style.height = t.scrollHeight + "px") }
 		function updateResultDisplay() { if (!rawRecognitionResult) return; resultText.value = formatResult(rawRecognitionResult, resultFormatSelect.value), adjustTextareaHeight() }
-		function updateTimer(t) { clearInterval(etaInterval); if (!t || t <= 0) return; let e = Math.round(t); etaInterval = setInterval(() => { e--, statusText.textContent = `预计剩余: ${Math.floor(e / 60)}分${(e % 60).toString().padStart(2, "0")}秒`, e <= 0 && clearInterval(etaInterval) }, 1e3) }
+		function updateTimer(t, e) { clearInterval(etaInterval); if (!e || e <= 0) return void (statusText.textContent = t); let o = Math.round(e); statusText.textContent = `${t} (预计: ${Math.floor(o / 60)}分${(o % 60).toString().padStart(2, "0")}秒)`; etaInterval = setInterval(() => { o--, statusText.textContent = `${t} (预计: ${Math.floor(o / 60)}分${(o % 60).toString().padStart(2, "0")}秒)`, o <= 0 && (clearInterval(etaInterval), statusText.textContent = t) }, 1e3) }
 		async function getFnIndex(t = 0) { const e = 5, o = 5e3; if (null !== cachedFnIndex) return cachedFnIndex; if (statusText.textContent = 0 === t ? "正在连接服务器..." : `正在唤醒服务器... (尝试 ${t}/${e})`, t >= e) throw new Error("服务器唤醒失败，请稍后刷新页面重试。"); try { const t = new AbortController, r = setTimeout(() => t.abort(), 2e4), s = await fetch(`${API_BASE}/config`, { signal: t.signal }); if (clearTimeout(r), !s.ok) throw new Error(`Status ${s.status}`); const n = await s.json(); let l = n.dependencies.findIndex(t => "model_inference" === t.api_name); return cachedFnIndex = -1 !== l ? l : 0 } catch (r) { return await new Promise(t => setTimeout(t, o)), getFnIndex(t + 1) } }
 		function genHash() { return Math.random().toString(36).slice(2) }
-		async function runViaQueue(t, e, o) { const r = await fetch(`${API_BASE}/gradio_api/queue/join`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: [t, D.getElementById("language").value, "原始富文本", D.getElementById("use_itn").checked, D.getElementById("merge_vad").checked, parseFloat(D.getElementById("merge_length").value), D.getElementById("ban_emo_unk").checked], fn_index: e, session_hash: o }) }); if (!r.ok) throw new Error(`加入队列失败: ${r.status} ${await r.text()}`); return new Promise((t, e) => { const r = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${o}`); let n = !1; const s = setTimeout(() => { n || (r.close(), e(new Error("处理超时"))) }, 9e5); r.onmessage = o => { try { const i = JSON.parse(o.data); "estimation" === i.msg ? (statusText.textContent = `排队中，前方还有 ${i.rank} 个任务...`, updateTimer(i.rank_eta)) : "process_starts" === i.msg ? (statusText.textContent = "开始处理...", updateTimer(i.eta)) : "process_completed" === i.msg ? (n = !0, clearTimeout(s), r.close(), clearInterval(etaInterval), i.success ? t(i.output?.data?.[0] ?? "") : e(new Error(i.output?.error || "服务器返回错误"))) : "queue_full" === i.msg && (n = !0, clearTimeout(s), r.close(), clearInterval(etaInterval), e(new Error("服务器当前队列已满，请稍后再试。"))) } catch (t) { } }, r.onerror = () => { n || (r.close(), clearInterval(etaInterval), e(new Error("连接中断"))) } }) }
+		function setSubmitButtonState(t) { const e = { idle: { text: "开始识别", icon: "play_arrow", enabled: !0 }, uploading: { text: "正在上传", icon: "upload", enabled: !1 }, processing: { text: "正在识别", icon: "hourglass_empty", enabled: !1 }, disabled: { text: "准备中...", icon: "pending", enabled: !1 } }; const o = e[t] || e.idle; submitText.textContent = o.text, submitIcon.textContent = o.icon, submitButton.disabled = !o.enabled }
+		async function runViaQueue(t, e, o) { return new Promise((r, s) => { const n = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${o}`), a = setTimeout(() => { l || (n.close(), s(new Error("处理超时"))) }, 9e5); let l = !1; fetch(`${API_BASE}/gradio_api/queue/join`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: [t, D.getElementById("language").value, "原始富文本", D.getElementById("use_itn").checked, D.getElementById("merge_vad").checked, parseFloat(D.getElementById("merge_length").value), D.getElementById("ban_emo_unk").checked], fn_index: e, session_hash: o }) }).then(t => { if (!t.ok) throw new Error(`加入队列失败: ${t.status} ${t.statusText}`) }).catch(t => s(t)), n.onmessage = t => { try { const e = JSON.parse(t.data); "estimation" === e.msg ? (statusText.textContent = "", updateTimer(`排队中 (第 ${e.rank + 1} 位)`, e.rank_eta)) : "process_starts" === e.msg ? (statusText.textContent = "", updateTimer("正在识别...", e.eta)) : "process_completed" === e.msg ? (l = !0, clearTimeout(a), n.close(), clearInterval(etaInterval), e.success ? r(e.output?.data?.[0] ?? "") : s(new Error(e.output?.error || "服务器返回错误"))) : "queue_full" === e.msg && (l = !0, clearTimeout(a), n.close(), clearInterval(etaInterval), s(new Error("服务器当前队列已满，请稍后再试。"))) } catch (t) { } }, n.onerror = () => { l || (n.close(), clearInterval(etaInterval), s(new Error("连接中断"))) } }) }
 
 		D.getElementById('upload-button').addEventListener('click', () => audioInput.click());
 		audioInput.addEventListener('change', () => { if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name });
@@ -402,33 +401,53 @@
 		dropZone.addEventListener('drop', t => { const e = t.dataTransfer.files; e.length > 0 && (audioInput.files = e, fileNameLabel.textContent = e[0].name) });
 		resultFormatSelect.addEventListener('change', updateResultDisplay);
 		copyMenuButton.addEventListener('click', () => copyMenu.open = !copyMenu.open);
-		copyMenu.addEventListener('close', t => { const e = t.target.selected; if (!e) return; const o = e.dataset.copyFormat, r = formatResult(rawRecognitionResult, o); navigator.clipboard.writeText(r).then(() => showToast("已复制到剪贴板")).catch(t => { showToast("复制失败"), console.error("Copy failed:", t) }) });
+		copyMenu.addEventListener('close', t => { const e = t.target.selected; if (!e || !rawRecognitionResult) return; const o = e.dataset.copyFormat, r = formatResult(rawRecognitionResult, o); navigator.clipboard.writeText(r).then(() => showToast("已复制到剪贴板")).catch(t => { showToast("复制失败"), console.error("Copy failed:", t) }) });
 
 		submitButton.addEventListener('click', async () => {
 			if (audioInput.files.length === 0) return showToast('请选择一个音频文件。');
-			submitButton.disabled = true; loader.style.display = 'block'; statusText.textContent = '准备中...'; progressWrapper.style.display = 'none'; resultWrapper.style.display = 'none'; clearInterval(etaInterval);
+			const file = audioInput.files[0];
+			if (file.size > MAX_UPLOAD_SIZE) return showToast(`文件过大，请上传小于 ${MAX_UPLOAD_SIZE / 1024 / 1024}MB 的文件。`);
+
+			setSubmitButtonState('disabled');
+			statusText.textContent = '准备中...';
+			loader.style.display = 'none'; // No longer use the circular loader
+			progressWrapper.style.display = 'none';
+			resultWrapper.style.display = 'none';
+			clearInterval(etaInterval);
+
 			try {
-				const file = audioInput.files[0], fnIndex = await getFnIndex(), sessionHash = genHash();
-				statusText.textContent = '正在上传...'; loader.style.display = 'none'; progressWrapper.style.display = 'flex';
+				const fnIndex = await getFnIndex(), sessionHash = genHash();
+				setSubmitButtonState('uploading');
+				statusText.textContent = '';
+				progressWrapper.style.display = 'flex';
+				progressLabel.textContent = '正在上传...';
+
 				const form = new FormData(); form.append('files', file);
 				const xhr = new XMLHttpRequest(); xhr.open('POST', `${API_BASE}/gradio_api/upload?upload_id=${sessionHash}`, true);
 				xhr.upload.onprogress = t => { t.lengthComputable && (progressBar.value = t.loaded / t.total, progressLabel.textContent = `正在上传... ${Math.round(t.loaded / t.total * 100)}%`) };
+
 				const pathStr = await new Promise((resolve, reject) => {
 					xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve((t => { try { const e = JSON.parse(t), o = Array.isArray(e) ? e[0] : null; if (!o) throw new Error("Invalid response"); return "string" == typeof o ? o : o.path } catch (t) { throw new Error("Parse error") } })(xhr.responseText)) : reject(new Error(`上传失败: ${xhr.statusText || 'Status ' + xhr.status}`));
 					xhr.onerror = () => reject(new Error('网络错误'));
 					xhr.send(form);
 				});
-				progressWrapper.style.display = 'none'; loader.style.display = 'block'; statusText.textContent = '已入队，等待处理...';
+
+				progressWrapper.style.display = 'none';
+				setSubmitButtonState('processing');
+				statusText.textContent = '已入队，等待处理...';
+
 				const fileObj = { path: pathStr, url: null, size: file.size, orig_name: file.name, is_stream: false, meta: { _type: 'gradio.FileData' } };
 				rawRecognitionResult = await runViaQueue(fileObj, fnIndex, sessionHash);
+
 				statusText.textContent = '识别完成！';
 				resultWrapper.style.display = 'block';
-				resultFormatSelect.value = '纯净文本'; // Set default view
+				resultFormatSelect.value = '纯净文本';
 				updateResultDisplay();
 			} catch (e) {
 				statusText.textContent = `失败: ${e.message || '未知错误'}`; console.error(e);
 			} finally {
-				submitButton.disabled = false; loader.style.display = 'none'; progressWrapper.style.display = 'none'; clearInterval(etaInterval);
+				setSubmitButtonState('idle');
+				progressWrapper.style.display = 'none'; clearInterval(etaInterval);
 			}
 		});
 	</script>
