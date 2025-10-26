@@ -373,24 +373,27 @@
 
 			const API_BASE = '/api';
 			let cachedFnIndex = null;
+
 			async function getFnIndex() {
 				if (cachedFnIndex !== null) return cachedFnIndex;
-				let resp = await fetch(`${API_BASE}/gradio_api/config`);
-				if (!resp.ok) resp = await fetch(`${API_BASE}/config`);
-				const cfg = await resp.json().catch(() => ({}));
+				const resp = await fetch(`${API_BASE}/config`);
+				if (!resp.ok) throw new Error(`获取配置失败: ${resp.status}`);
+				const cfg = await resp.json();
 				let idx = 0;
-				if (cfg && cfg.named_endpoints && (cfg.named_endpoints['/model_inference'] !== undefined)) {
-					idx = cfg.named_endpoints['/model_inference'];
-				} else if (cfg && cfg.dependencies) {
+				if (cfg && cfg.dependencies) {
 					for (let i = 0; i < cfg.dependencies.length; i++) {
-						const d = cfg.dependencies[i];
-						if (d && (d.api_name === '/model_inference' || d.api_name === 'model_inference')) { idx = i; break; }
+						if (cfg.dependencies[i]?.api_name === 'model_inference') {
+							idx = i;
+							break;
+						}
 					}
 				}
 				cachedFnIndex = idx;
 				return idx;
 			}
+
 			function genHash() { return Math.random().toString(36).slice(2); }
+
 			function readAsDataURL(file) {
 				return new Promise((resolve, reject) => {
 					const r = new FileReader();
@@ -399,13 +402,14 @@
 					r.readAsDataURL(file);
 				});
 			}
-			async function runViaQueue(firstArg, fnIndex, sessionHash, onStatus) {
+
+			async function runViaQueue(filePayload, fnIndex, sessionHash, onStatus) {
 				const join = await fetch(`${API_BASE}/gradio_api/queue/join`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						data: [
-							firstArg,
+							filePayload,
 							document.getElementById('language').value,
 							document.getElementById('output_format').value,
 							document.getElementById('use_itn').checked,
@@ -417,83 +421,99 @@
 						session_hash: sessionHash
 					})
 				});
-				if (!join.ok) { const t = await join.text(); throw new Error(`加入队列失败: ${join.status} ${t}`); }
+				if (!join.ok) {
+					const errorText = await join.text();
+					throw new Error(`加入队列失败: ${join.status} ${errorText}`);
+				}
+
 				return await new Promise((resolve, reject) => {
 					const es = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${sessionHash}`);
 					let finished = false;
-					const timeout = setTimeout(() => { if (!finished) { finished = true; es.close(); reject(new Error('处理超时')); } }, 15 * 60 * 1000);
+					const timeout = setTimeout(() => { if (!finished) { finished = true; es.close(); reject(new Error('处理超时 (15分钟)')); } }, 15 * 60 * 1000);
+
 					es.onmessage = (e) => {
 						try {
 							const data = JSON.parse(e.data);
-							if (data.msg === 'estimation' && data.rank !== undefined) {
+							if (data.msg === 'estimation') {
 								if (onStatus) onStatus(`排队中，前方还有 ${data.rank} 个任务...`);
 							} else if (data.msg === 'process_starts') {
 								if (onStatus) onStatus('开始处理...');
 							} else if (data.msg === 'process_completed') {
-								const ok = data.success === true;
-								const out = data.output || {};
-								const text = out && out.data && Array.isArray(out.data) ? (out.data[0] ?? '') : '';
-								if (!finished) { finished = true; clearTimeout(timeout); es.close(); ok ? resolve(text) : reject(new Error('服务器返回错误')); }
+								finished = true;
+								clearTimeout(timeout);
+								es.close();
+								if (data.success === true) {
+									resolve(data.output?.data?.[0] ?? '');
+								} else {
+									reject(new Error(data.output?.error || '服务器返回错误 (success: false)。'));
+								}
 							} else if (data.msg === 'queue_full') {
-								if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列已满，请稍后再试')); }
+								finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列已满，请稍后再试'));
 							}
 						} catch (_) { }
 					};
 					es.onerror = () => {
-						if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列连接中断')); }
+						if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('与服务器的连接中断')); }
 					};
 				});
 			}
 
 			submitButton.addEventListener('click', async () => {
-				if (audioInput.files.length === 0) { statusText.textContent = '错误：请上传或录制音频。'; return; }
+				if (audioInput.files.length === 0) {
+					statusText.textContent = '错误：请选择一个音频文件。';
+					return;
+				}
 				submitButton.disabled = true;
 				loader.style.display = 'block';
-				statusText.textContent = '准备上传...';
+				statusText.textContent = '准备中...';
 				resultWrapper.style.display = 'none';
 
-				const file = audioInput.files[0];
-				const fnIndex = await getFnIndex();
-				const sessionHash = genHash();
-
 				try {
-					const form = new FormData();
-					form.append('files', file);
-					const up = await fetch(`${API_BASE}/gradio_api/upload?upload_id=${sessionHash}`, { method: 'POST', body: form });
-					if (!up.ok) { const t = await up.text(); throw new Error(`文件上传失败: ${up.status} ${t}`); }
-					const arr = await up.json();
-					const first = Array.isArray(arr) ? arr[0] : null;
-					if (!first) throw new Error('上传响应中未找到文件信息');
-
-					const pathStr = typeof first === 'string' ? first : first.path;
-					if (!pathStr) throw new Error('上传结果格式异常');
-
-					statusText.textContent = '已入队，排队/识别中...';
+					statusText.textContent = '获取API配置...';
+					const file = audioInput.files[0];
+					const fnIndex = await getFnIndex();
 					let text = '';
+
 					try {
+						statusText.textContent = '尝试直接上传文件...';
+						const sessionHash = genHash();
+						const form = new FormData();
+						form.append('files', file);
+
+						const up = await fetch(`${API_BASE}/gradio_api/upload?upload_id=${sessionHash}`, { method: 'POST', body: form });
+						if (!up.ok) throw new Error(`文件上传失败: ${up.status}`);
+
+						const arr = await up.json();
+						const first = Array.isArray(arr) ? arr[0] : null;
+						if (!first || !(typeof first === 'string' || first.path)) throw new Error('上传响应格式不正确');
+
+						const pathStr = typeof first === 'string' ? first : first.path;
 						const fileObj = {
-							path: pathStr,
-							url: null,
-							size: file.size,
-							orig_name: file.name,
-							mime_type: file.type || null,
-							is_stream: false,
-							meta: { _type: 'gradio.FileData' }
+							path: pathStr, url: null, size: file.size, orig_name: file.name,
+							mime_type: file.type || null, is_stream: false, meta: { _type: 'gradio.FileData' }
 						};
+
+						statusText.textContent = '已入队 (路径方式)，等待处理...';
 						text = await runViaQueue(fileObj, fnIndex, sessionHash, (s) => statusText.textContent = s);
 					} catch (e1) {
-						statusText.textContent = '路径方式失败，尝试直接传文件...';
+						console.warn("路径方式失败，回退到 Base64 方式。错误:", e1.message);
+						statusText.textContent = '路径方式失败，尝试Base64编码...';
+
 						const dataUrl = await readAsDataURL(file);
 						const baseObj = { name: file.name, data: dataUrl, is_file: true };
 						const sessionHash2 = genHash();
+
+						statusText.textContent = '已入队 (Base64方式)，等待处理...';
 						text = await runViaQueue(baseObj, fnIndex, sessionHash2, (s) => statusText.textContent = s);
 					}
 
 					statusText.textContent = '识别完成！';
-					resultText.value = text || '';
+					resultText.value = text || '（未能识别出文本）';
 					resultWrapper.style.display = 'block';
+
 				} catch (e) {
 					statusText.textContent = `失败: ${e.message || e}`;
+					console.error(e);
 				} finally {
 					submitButton.disabled = false;
 					loader.style.display = 'none';
