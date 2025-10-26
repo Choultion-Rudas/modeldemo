@@ -22,14 +22,8 @@
 			--md-sys-color-on-secondary: #ffffff;
 			--md-sys-color-secondary-container: #dce2f9;
 			--md-sys-color-on-secondary-container: #151b2c;
-			--md-sys-color-tertiary: #735471;
-			--md-sys-color-on-tertiary: #ffffff;
-			--md-sys-color-tertiary-container: #fed7f9;
-			--md-sys-color-on-tertiary-container: #2b122b;
 			--md-sys-color-error: #ba1a1a;
 			--md-sys-color-on-error: #ffffff;
-			--md-sys-color-error-container: #ffdad6;
-			--md-sys-color-on-error-container: #410002;
 			--md-sys-color-background: #fdfbff;
 			--md-sys-color-on-background: #1b1b1f;
 			--md-sys-color-surface: #fdfbff;
@@ -37,18 +31,10 @@
 			--md-sys-color-surface-variant: #e1e2ec;
 			--md-sys-color-on-surface-variant: #44474f;
 			--md-sys-color-outline: #75777f;
-			--md-sys-color-inverse-on-surface: #f2f0f4;
-			--md-sys-color-inverse-surface: #2f3033;
-			--md-sys-color-inverse-primary: #a8c7fa;
-			--md-sys-color-shadow: #000000;
-			--md-sys-color-surface-tint: #0b57d0;
 			--md-sys-color-outline-variant: #c5c6d0;
-			--md-sys-color-scrim: #000000;
-			--md-sys-color-surface-container-highest: #e3e2e6;
-			--md-sys-color-surface-container-high: #eae7eb;
-			--md-sys-color-surface-container: #efedf1;
-			--md-sys-color-surface-container-low: #f5f3f7;
-			--md-sys-color-surface-container-lowest: #ffffff
+			--md-sys-color-surface-container-lowest: #ffffff;
+			--md-sys-color-inverse-surface: #2f3033;
+			--md-sys-color-inverse-on-surface: #f2f0f4;
 		}
 
 		@media (prefers-color-scheme: dark) {
@@ -62,14 +48,8 @@
 				--md-sys-color-on-secondary: #2a3042;
 				--md-sys-color-secondary-container: #404659;
 				--md-sys-color-on-secondary-container: #dce2f9;
-				--md-sys-color-tertiary: #e0bbda;
-				--md-sys-color-on-tertiary: #422741;
-				--md-sys-color-tertiary-container: #5a3d58;
-				--md-sys-color-on-tertiary-container: #fed7f9;
 				--md-sys-color-error: #ffb4ab;
 				--md-sys-color-on-error: #690005;
-				--md-sys-color-error-container: #93000a;
-				--md-sys-color-on-error-container: #ffdad6;
 				--md-sys-color-background: #1b1b1f;
 				--md-sys-color-on-background: #e3e2e6;
 				--md-sys-color-surface: #121418;
@@ -77,24 +57,16 @@
 				--md-sys-color-surface-variant: #44474f;
 				--md-sys-color-on-surface-variant: #c5c6d0;
 				--md-sys-color-outline: #8e9199;
-				--md-sys-color-inverse-on-surface: #1b1b1f;
-				--md-sys-color-inverse-surface: #e3e2e6;
-				--md-sys-color-inverse-primary: #0b57d0;
-				--md-sys-color-shadow: #000000;
-				--md-sys-color-surface-tint: #a8c7fa;
 				--md-sys-color-outline-variant: #44474f;
-				--md-sys-color-scrim: #000000;
-				--md-sys-color-surface-container-highest: #353539;
-				--md-sys-color-surface-container-high: #2a2a2e;
-				--md-sys-color-surface-container: #1f2023;
-				--md-sys-color-surface-container-low: #1b1b1f;
-				--md-sys-color-surface-container-lowest: #0d0f13
+				--md-sys-color-surface-container-lowest: #0d0f13;
+				--md-sys-color-inverse-surface: #e3e2e6;
+				--md-sys-color-inverse-on-surface: #2f3033;
 			}
 		}
 
 		body {
 			font-family: 'Google Sans Text', sans-serif;
-			background-color: var(--md-sys-color-surface);
+			background-color: var(--md-sys-color-background);
 			color: var(--md-sys-color-on-surface);
 			display: flex;
 			justify-content: center;
@@ -102,91 +74,90 @@
 			padding: 1.5rem;
 			min-height: 100vh;
 			box-sizing: border-box;
-			transition: background-color .3s ease
 		}
 
 		.card {
 			max-width: 700px;
 			width: 100%;
-			background-color: var(--md-sys-color-surface);
+			background-color: var(--md-sys-color-surface-container-lowest);
 			border-radius: 16px;
 			padding: 24px;
-			transition: background-color .3s ease, outline .2s ease
+			border: 1px solid var(--md-sys-color-outline-variant);
 		}
 
 		.card.drag-over {
 			outline: 2px dashed var(--md-sys-color-primary);
-			outline-offset: -8px
+			outline-offset: -8px;
 		}
 
 		.header {
 			text-align: center;
-			margin-bottom: 24px
+			margin-bottom: 24px;
 		}
 
 		.header h1 {
 			color: var(--md-sys-color-primary);
 			font-size: 28px;
 			font-weight: 700;
-			margin: 0 0 12px 0
+			margin: 0 0 12px 0;
 		}
 
 		.header p {
 			margin: 4px 0;
-			color: var(--md-sys-color-on-surface-variant)
+			color: var(--md-sys-color-on-surface-variant);
 		}
 
 		.header .subtitle {
 			font-size: .8rem;
-			color: var(--md-sys-color-outline)
+			color: var(--md-sys-color-outline);
 		}
 
 		.form-group,
 		.checkbox-group {
-			margin-bottom: 20px
+			margin-bottom: 20px;
 		}
 
 		.checkbox-group {
 			display: flex;
 			align-items: center;
 			cursor: pointer;
-			color: var(--md-sys-color-on-surface-variant)
+			color: var(--md-sys-color-on-surface-variant);
 		}
 
 		md-checkbox {
-			margin-right: 8px
+			margin-right: 8px;
 		}
 
 		.file-upload-wrapper {
 			display: flex;
 			flex-direction: column;
 			align-items: flex-start;
-			gap: 8px
+			gap: 8px;
 		}
 
 		.file-controls {
 			display: flex;
 			align-items: center;
-			gap: 16px
+			gap: 16px;
 		}
 
 		.drop-hint {
 			display: none;
 			font-size: .8rem;
 			color: var(--md-sys-color-outline);
-			margin: 0
+			margin: 0;
 		}
 
-		@media (pointer:fine) {
+		@media(pointer:fine) {
 			.drop-hint {
-				display: block
+				display: block;
 			}
 		}
 
 		.slider-group label {
 			color: var(--md-sys-color-on-surface-variant);
 			font-size: .9rem;
-			margin-bottom: 8px
+			margin-bottom: 8px;
 		}
 
 		.button-wrapper {
@@ -194,42 +165,56 @@
 			justify-content: flex-end;
 			align-items: center;
 			gap: 16px;
-			margin-top: 24px
+			margin-top: 24px;
+		}
+
+		.progress-wrapper {
+			margin-top: 16px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		md-linear-progress {
+			width: 100%;
 		}
 
 		.result-wrapper {
-			margin-top: 24px
+			margin-top: 24px;
 		}
 
 		.result-header {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			margin-bottom: 8px
+			gap: 16px;
+			margin-bottom: 8px;
+			flex-wrap: wrap;
 		}
 
-		.result-header label {
-			font-weight: 500;
-			color: var(--md-sys-color-on-surface-variant)
+		md-outlined-text-field {
+			width: 100%;
+			--md-outlined-text-field-container-shape: 8px;
+		}
+
+		md-outlined-text-field textarea {
+			resize: none;
+			overflow-y: hidden;
 		}
 
 		#audio_input {
-			display: none
+			display: none;
 		}
 
 		md-filled-select,
-		md-outlined-text-field {
-			width: 100%
-		}
-
-		md-outlined-text-field {
-			--md-outlined-text-field-container-shape: 8px
+		md-outlined-select {
+			width: 100%;
 		}
 
 		details {
 			border-top: 1px solid var(--md-sys-color-outline);
 			margin-top: 24px;
-			padding-top: 20px
+			padding-top: 20px;
 		}
 
 		details>summary {
@@ -237,26 +222,47 @@
 			font-weight: 500;
 			font-size: 1rem;
 			color: var(--md-sys-color-primary);
-			list-style: none
+			list-style: none;
 		}
 
 		details>summary::-webkit-details-marker {
-			display: none
+			display: none;
 		}
 
 		.details-content-wrapper {
 			display: grid;
 			grid-template-rows: 0fr;
-			transition: grid-template-rows .3s ease-in-out
+			transition: grid-template-rows .3s ease-in-out;
 		}
 
 		details[open]>.details-content-wrapper {
-			grid-template-rows: 1fr
+			grid-template-rows: 1fr;
 		}
 
 		.advanced-settings-content {
 			padding-top: 20px;
-			overflow: hidden
+			overflow: hidden;
+		}
+
+		#toast {
+			position: fixed;
+			bottom: 2rem;
+			left: 50%;
+			transform: translateX(-50%);
+			background-color: var(--md-sys-color-inverse-surface);
+			color: var(--md-sys-color-inverse-on-surface);
+			padding: 12px 18px;
+			border-radius: 24px;
+			font-size: 0.9rem;
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.3s, visibility 0.3s;
+			z-index: 1000;
+		}
+
+		#toast.show {
+			opacity: 1;
+			visibility: visible;
 		}
 	</style>
 </head>
@@ -268,6 +274,7 @@
 			<p>SenseVoice 是具有音频理解能力的音频基础模型，包括语音识别（ASR）、语种识别（LID）、语音情感识别（SER）和声学事件分类（AEC）或声学事件检测（AED）。</p>
 			<p class="subtitle">支持 MP3, WAV, FLAC, M4A 等常见音频格式。</p>
 		</div>
+
 		<div class="form-group file-upload-wrapper">
 			<div class="file-controls">
 				<md-filled-button id="upload-button"><span class="material-icons"
@@ -277,6 +284,7 @@
 			<p class="drop-hint">或拖拽文件至此区域</p>
 			<input type="file" id="audio_input" accept="audio/*">
 		</div>
+
 		<div class="form-group">
 			<md-filled-select id="language" label="源语言">
 				<md-select-option value="auto" selected>
@@ -302,19 +310,7 @@
 				</md-select-option>
 			</md-filled-select>
 		</div>
-		<div class="form-group">
-			<md-filled-select id="output_format" label="输出格式">
-				<md-select-option value="纯净文本" selected>
-					<div slot="headline">纯净文本</div>
-				</md-select-option>
-				<md-select-option value="原始富文本">
-					<div slot="headline">原始富文本</div>
-				</md-select-option>
-				<md-select-option value="Emoji 格式">
-					<div slot="headline">Emoji 格式</div>
-				</md-select-option>
-			</md-filled-select>
-		</div>
+
 		<details>
 			<summary>高级设置</summary>
 			<div class="details-content-wrapper">
@@ -332,193 +328,108 @@
 				</div>
 			</div>
 		</details>
+
 		<div class="button-wrapper">
 			<p id="status-text"></p>
 			<md-circular-progress indeterminate style="display: none;" id="loader"></md-circular-progress>
 			<md-filled-button id="submit-button">开始识别</md-filled-button>
 		</div>
+		<div class="progress-wrapper" id="progress-wrapper" style="display: none;">
+			<label id="progress-label">正在上传...</label>
+			<md-linear-progress value="0" buffer="1" id="progress-bar"></md-linear-progress>
+		</div>
+
 		<div class="result-wrapper" id="result-wrapper" style="display: none;">
 			<div class="result-header">
-				<label>识别结果</label>
-				<md-icon-button id="copy-button"><span id="copy-icon" class="material-icons"
-						slot="icon">content_copy</span></md-icon-button>
+				<md-outlined-select id="result-format-select" label="显示格式" style="width: 160px;">
+					<md-select-option value="纯净文本" selected>
+						<div slot="headline">纯净文本</div>
+					</md-select-option>
+					<md-select-option value="原始富文本">
+						<div slot="headline">原始富文本</div>
+					</md-select-option>
+					<md-select-option value="Emoji 格式">
+						<div slot="headline">Emoji 格式</div>
+					</md-select-option>
+				</md-outlined-select>
+
+				<div style="position: relative;">
+					<md-filled-button id="copy-menu-button">
+						<md-icon slot="icon">content_copy</md-icon>复制
+					</md-filled-button>
+					<md-menu id="copy-menu" anchor="copy-menu-button">
+						<md-menu-item data-copy-format="纯净文本">
+							<div slot="headline">复制纯净文本</div>
+						</md-menu-item>
+						<md-menu-item data-copy-format="原始富文本">
+							<div slot="headline">复制原始富文本</div>
+						</md-menu-item>
+						<md-menu-item data-copy-format="Emoji 格式">
+							<div slot="headline">复制 Emoji 格式</div>
+						</md-menu-item>
+					</md-menu>
+				</div>
 			</div>
-			<md-outlined-text-field id="result-text" type="textarea" rows="8" readonly></md-outlined-text-field>
+			<md-outlined-text-field id="result-text" type="textarea" rows="5" readonly></md-outlined-text-field>
 		</div>
 	</div>
+	<div id="toast"></div>
+
 	<script type="module">
-		document.addEventListener('DOMContentLoaded', () => {
-			const dropZone = document.getElementById('drop-zone');
-			const uploadButton = document.getElementById('upload-button');
-			const audioInput = document.getElementById('audio_input');
-			const fileNameLabel = document.getElementById('file-name-label');
-			const submitButton = document.getElementById('submit-button');
-			const statusText = document.getElementById('status-text');
-			const loader = document.getElementById('loader');
-			const resultWrapper = document.getElementById('result-wrapper');
-			const resultText = document.getElementById('result-text');
-			const copyButton = document.getElementById('copy-button');
-			const copyIcon = document.getElementById('copy-icon');
-			const mergeLengthSlider = document.getElementById('merge_length');
-			const sliderLabel = document.getElementById('slider-label');
+		const D = document;
+		const audioInput = D.getElementById('audio_input'), dropZone = D.getElementById('drop-zone'), fileNameLabel = D.getElementById('file-name-label'), submitButton = D.getElementById('submit-button'), statusText = D.getElementById('status-text'), loader = D.getElementById('loader'), progressWrapper = D.getElementById('progress-wrapper'), progressLabel = D.getElementById('progress-label'), progressBar = D.getElementById('progress-bar'), resultWrapper = D.getElementById('result-wrapper'), resultFormatSelect = D.getElementById('result-format-select'), resultText = D.getElementById('result-text'), copyMenuButton = D.getElementById('copy-menu-button'), copyMenu = D.getElementById('copy-menu'), toast = D.getElementById('toast');
+		const API_BASE = '/api';
+		let cachedFnIndex = null, rawRecognitionResult = '', etaInterval;
 
-			uploadButton.addEventListener('click', () => audioInput.click());
-			audioInput.addEventListener('change', () => { if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name; });
-			mergeLengthSlider.addEventListener('input', () => { sliderLabel.textContent = `断句最大长度（秒）：${mergeLengthSlider.value}s`; });
-			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); }, false));
-			['dragenter', 'dragover'].forEach(n => dropZone.addEventListener(n, () => dropZone.classList.add('drag-over'), false));
-			['dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, () => dropZone.classList.remove('drag-over'), false));
-			dropZone.addEventListener('drop', e => { const files = e.dataTransfer.files; if (files.length > 0) { audioInput.files = files; fileNameLabel.textContent = files[0].name; } }, false);
-			copyButton.addEventListener('click', () => { navigator.clipboard.writeText(resultText.value || '').then(() => { copyIcon.textContent = 'check'; setTimeout(() => { copyIcon.textContent = 'content_copy'; }, 1000); }); });
+		const emoji_dict_full = { "<|nospeech|><|Event_UNK|>": "❓", "<|zh|>": "", "<|en|>": "", "<|yue|>": "", "<|ja|>": "", "<|ko|>": "", "<|nospeech|>": "", "<|HAPPY|>": "😊", "<|SAD|>": "😔", "<|ANGRY|>": "😡", "<|NEUTRAL|>": "", "<|BGM|>": "🎼", "<|Speech|>": "", "<|Applause|>": "👏", "<|Laughter|>": "😀", "<|FEARFUL|>": "😰", "<|DISGUSTED|>": "🤢", "<|SURPRISED|>": "😮", "<|Cry|>": "😭", "<|EMO_UNKNOWN|>": "", "<|Sneeze|>": "🤧", "<|Breath|>": "", "<|Cough|>": "😷", "<|Sing|>": "", "<|Speech_Noise|>": "", "<|withitn|>": "", "<|woitn|>": "", "<|GBG|>": "", "<|Event_UNK|>": "" }, emo_dict_map = { "<|HAPPY|>": "😊", "<|SAD|>": "😔", "<|ANGRY|>": "😡", "<|NEUTRAL|>": "", "<|FEARFUL|>": "😰", "<|DISGUSTED|>": "🤢", "<|SURPRISED|>": "😮" }, event_dict = { "<|BGM|>": "🎼", "<|Speech|>": "", "<|Applause|>": "👏", "<|Laughter|>": "😀", "<|Cry|>": "😭", "<|Sneeze|>": "🤧", "<|Breath|>": "", "<|Cough|>": "🤧" }, lang_dict = { "<|zh|>": "<|lang|>", "<|en|>": "<|lang|>", "<|yue|>": "<|lang|>", "<|ja|>": "<|lang|>", "<|ko|>": "<|lang|>", "<|nospeech|>": "<|lang|>" }, emo_set = new Set(["😊", "😔", "😡", "😰", "🤢", "😮"]), event_set = new Set(["🎼", "👏", "😀", "😭", "🤧", "😷"]);
+		function format_str_v2(s) { let t = {}, e = "<|NEUTRAL|>"; for (const o in emoji_dict_full) t[o] = (s.match(new RegExp(o.replace(/\|/g, "\\|"), "g")) || []).length, s = s.replaceAll(o, ""); for (const o in emo_dict_map) (t[o] || 0) > (t[e] || 0) && (e = o); for (const o in event_dict) (t[o] || 0) > 0 && (s = event_dict[o] + s); s += emo_dict_map[e] || ""; const o = new Set([...emo_set, ...event_set]); return o.forEach(t => { s = s.replaceAll(" " + t, t).replaceAll(t + " ", t) }), s.trim() }
+		function format_str_v3(s) { const t = t => t && emo_set.has(t.slice(-1)) ? t.slice(-1) : null, e = t => t && event_set.has(t[0]) ? t[0] : null; s = s.replaceAll("<|nospeech|><|Event_UNK|>", "❓"); for (const o in lang_dict) s = s.replaceAll(o, "<|lang|>"); let o = s.split("<|lang|>").map(t => format_str_v2(t).trim()), r = " " + (o[0] || ""); let n = e(r); for (let s = 1; s < o.length; s++) { if (!o[s]) continue; e(o[s]) === n && null !== n && (o[s] = o[s].substring(1)), n = e(o[s]), null !== t(o[s]) && t(o[s]) === t(r) && (r = r.slice(0, -1)), r += o[s].trim().replace(/^\s+/, "") } return r.trim() }
+		function formatResult(t, e) { return "纯净文本" === e ? t.replace(/<\|[^>]*>/g, "").replace(/\s+/g, " ").trim() : "原始富文本" === e ? t : "Emoji 格式" === e ? format_str_v3(t) : t }
+		function showToast(t) { toast.textContent = t, toast.classList.add("show"), setTimeout(() => { toast.classList.remove("show") }, 2e3) }
+		function adjustTextareaHeight() { const t = resultText.shadowRoot.querySelector("textarea"); t && (t.style.height = "auto", t.style.height = t.scrollHeight + "px") }
+		function updateResultDisplay() { if (!rawRecognitionResult) return; resultText.value = formatResult(rawRecognitionResult, resultFormatSelect.value), adjustTextareaHeight() }
+		function updateTimer(t) { clearInterval(etaInterval); if (!t || t <= 0) return; let e = Math.round(t); etaInterval = setInterval(() => { e--, statusText.textContent = `预计剩余: ${Math.floor(e / 60)}分${(e % 60).toString().padStart(2, "0")}秒`, e <= 0 && clearInterval(etaInterval) }, 1e3) }
+		async function getFnIndex(t = 0) { const e = 5, o = 5e3; if (null !== cachedFnIndex) return cachedFnIndex; if (statusText.textContent = 0 === t ? "正在连接服务器..." : `正在唤醒服务器... (尝试 ${t}/${e})`, t >= e) throw new Error("服务器唤醒失败，请稍后刷新页面重试。"); try { const t = new AbortController, r = setTimeout(() => t.abort(), 2e4), s = await fetch(`${API_BASE}/config`, { signal: t.signal }); if (clearTimeout(r), !s.ok) throw new Error(`Status ${s.status}`); const n = await s.json(); let l = n.dependencies.findIndex(t => "model_inference" === t.api_name); return cachedFnIndex = -1 !== l ? l : 0 } catch (r) { return await new Promise(t => setTimeout(t, o)), getFnIndex(t + 1) } }
+		function genHash() { return Math.random().toString(36).slice(2) }
+		async function runViaQueue(t, e, o) { const r = await fetch(`${API_BASE}/gradio_api/queue/join`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: [t, D.getElementById("language").value, "原始富文本", D.getElementById("use_itn").checked, D.getElementById("merge_vad").checked, parseFloat(D.getElementById("merge_length").value), D.getElementById("ban_emo_unk").checked], fn_index: e, session_hash: o }) }); if (!r.ok) throw new Error(`加入队列失败: ${r.status} ${await r.text()}`); return new Promise((t, e) => { const r = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${o}`); let n = !1; const s = setTimeout(() => { n || (r.close(), e(new Error("处理超时"))) }, 9e5); r.onmessage = o => { try { const i = JSON.parse(o.data); "estimation" === i.msg ? (statusText.textContent = `排队中，前方还有 ${i.rank} 个任务...`, updateTimer(i.rank_eta)) : "process_starts" === i.msg ? (statusText.textContent = "开始处理...", updateTimer(i.eta)) : "process_completed" === i.msg ? (n = !0, clearTimeout(s), r.close(), clearInterval(etaInterval), i.success ? t(i.output?.data?.[0] ?? "") : e(new Error(i.output?.error || "服务器返回错误"))) : "queue_full" === i.msg && (n = !0, clearTimeout(s), r.close(), clearInterval(etaInterval), e(new Error("服务器当前队列已满，请稍后再试。"))) } catch (t) { } }, r.onerror = () => { n || (r.close(), clearInterval(etaInterval), e(new Error("连接中断"))) } }) }
 
-			const API_BASE = '/api';
-			let cachedFnIndex = null;
+		D.getElementById('upload-button').addEventListener('click', () => audioInput.click());
+		audioInput.addEventListener('change', () => { if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name });
+		D.getElementById('merge_length').addEventListener('input', t => { D.getElementById('slider-label').textContent = `断句最大长度（秒）：${t.target.value}s` });
+		['dragenter', 'dragover', 'dragleave', 'drop'].forEach(t => dropZone.addEventListener(t, e => { e.preventDefault(), e.stopPropagation() }));
+		['dragenter', 'dragover'].forEach(t => dropZone.addEventListener(t, () => dropZone.classList.add('drag-over')));
+		['dragleave', 'drop'].forEach(t => dropZone.addEventListener(t, () => dropZone.classList.remove('drag-over')));
+		dropZone.addEventListener('drop', t => { const e = t.dataTransfer.files; e.length > 0 && (audioInput.files = e, fileNameLabel.textContent = e[0].name) });
+		resultFormatSelect.addEventListener('change', updateResultDisplay);
+		copyMenuButton.addEventListener('click', () => copyMenu.open = !copyMenu.open);
+		copyMenu.addEventListener('close', t => { const e = t.target.selected; if (!e) return; const o = e.dataset.copyFormat, r = formatResult(rawRecognitionResult, o); navigator.clipboard.writeText(r).then(() => showToast("已复制到剪贴板")).catch(t => { showToast("复制失败"), console.error("Copy failed:", t) }) });
 
-			async function getFnIndex() {
-				if (cachedFnIndex !== null) return cachedFnIndex;
-				const resp = await fetch(`${API_BASE}/config`);
-				if (!resp.ok) throw new Error(`获取配置失败: ${resp.status}`);
-				const cfg = await resp.json();
-				let idx = 0;
-				if (cfg && cfg.dependencies) {
-					for (let i = 0; i < cfg.dependencies.length; i++) {
-						if (cfg.dependencies[i]?.api_name === 'model_inference') {
-							idx = i;
-							break;
-						}
-					}
-				}
-				cachedFnIndex = idx;
-				return idx;
-			}
-
-			function genHash() { return Math.random().toString(36).slice(2); }
-
-			function readAsDataURL(file) {
-				return new Promise((resolve, reject) => {
-					const r = new FileReader();
-					r.onload = () => resolve(r.result);
-					r.onerror = reject;
-					r.readAsDataURL(file);
+		submitButton.addEventListener('click', async () => {
+			if (audioInput.files.length === 0) return showToast('请选择一个音频文件。');
+			submitButton.disabled = true; loader.style.display = 'block'; statusText.textContent = '准备中...'; progressWrapper.style.display = 'none'; resultWrapper.style.display = 'none'; clearInterval(etaInterval);
+			try {
+				const file = audioInput.files[0], fnIndex = await getFnIndex(), sessionHash = genHash();
+				statusText.textContent = '正在上传...'; loader.style.display = 'none'; progressWrapper.style.display = 'flex';
+				const form = new FormData(); form.append('files', file);
+				const xhr = new XMLHttpRequest(); xhr.open('POST', `${API_BASE}/gradio_api/upload?upload_id=${sessionHash}`, true);
+				xhr.upload.onprogress = t => { t.lengthComputable && (progressBar.value = t.loaded / t.total, progressLabel.textContent = `正在上传... ${Math.round(t.loaded / t.total * 100)}%`) };
+				const pathStr = await new Promise((resolve, reject) => {
+					xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve((t => { try { const e = JSON.parse(t), o = Array.isArray(e) ? e[0] : null; if (!o) throw new Error("Invalid response"); return "string" == typeof o ? o : o.path } catch (t) { throw new Error("Parse error") } })(xhr.responseText)) : reject(new Error(`上传失败: ${xhr.statusText || 'Status ' + xhr.status}`));
+					xhr.onerror = () => reject(new Error('网络错误'));
+					xhr.send(form);
 				});
+				progressWrapper.style.display = 'none'; loader.style.display = 'block'; statusText.textContent = '已入队，等待处理...';
+				const fileObj = { path: pathStr, url: null, size: file.size, orig_name: file.name, is_stream: false, meta: { _type: 'gradio.FileData' } };
+				rawRecognitionResult = await runViaQueue(fileObj, fnIndex, sessionHash);
+				statusText.textContent = '识别完成！';
+				resultWrapper.style.display = 'block';
+				resultFormatSelect.value = '纯净文本'; // Set default view
+				updateResultDisplay();
+			} catch (e) {
+				statusText.textContent = `失败: ${e.message || '未知错误'}`; console.error(e);
+			} finally {
+				submitButton.disabled = false; loader.style.display = 'none'; progressWrapper.style.display = 'none'; clearInterval(etaInterval);
 			}
-
-			async function runViaQueue(filePayload, fnIndex, sessionHash, onStatus) {
-				const join = await fetch(`${API_BASE}/gradio_api/queue/join`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						data: [
-							filePayload,
-							document.getElementById('language').value,
-							document.getElementById('output_format').value,
-							document.getElementById('use_itn').checked,
-							document.getElementById('merge_vad').checked,
-							parseFloat(document.getElementById('merge_length').value),
-							document.getElementById('ban_emo_unk').checked
-						],
-						fn_index: fnIndex,
-						session_hash: sessionHash
-					})
-				});
-				if (!join.ok) {
-					const errorText = await join.text();
-					throw new Error(`加入队列失败: ${join.status} ${errorText}`);
-				}
-
-				return await new Promise((resolve, reject) => {
-					const es = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${sessionHash}`);
-					let finished = false;
-					const timeout = setTimeout(() => { if (!finished) { finished = true; es.close(); reject(new Error('处理超时 (15分钟)')); } }, 15 * 60 * 1000);
-
-					es.onmessage = (e) => {
-						try {
-							const data = JSON.parse(e.data);
-							if (data.msg === 'estimation') {
-								if (onStatus) onStatus(`排队中，前方还有 ${data.rank} 个任务...`);
-							} else if (data.msg === 'process_starts') {
-								if (onStatus) onStatus('开始处理...');
-							} else if (data.msg === 'process_completed') {
-								finished = true;
-								clearTimeout(timeout);
-								es.close();
-								if (data.success === true) {
-									resolve(data.output?.data?.[0] ?? '');
-								} else {
-									reject(new Error(data.output?.error || '服务器返回错误 (success: false)。'));
-								}
-							} else if (data.msg === 'queue_full') {
-								finished = true; clearTimeout(timeout); es.close(); reject(new Error('队列已满，请稍后再试'));
-							}
-						} catch (_) { }
-					};
-					es.onerror = () => {
-						if (!finished) { finished = true; clearTimeout(timeout); es.close(); reject(new Error('与服务器的连接中断')); }
-					};
-				});
-			}
-
-			submitButton.addEventListener('click', async () => {
-				if (audioInput.files.length === 0) {
-					statusText.textContent = '错误：请选择一个音频文件。';
-					return;
-				}
-				submitButton.disabled = true;
-				loader.style.display = 'block';
-				statusText.textContent = '准备中...';
-				resultWrapper.style.display = 'none';
-
-				try {
-					statusText.textContent = '获取API配置...';
-					const file = audioInput.files[0];
-					const fnIndex = await getFnIndex();
-					let text = '';
-
-					try {
-						statusText.textContent = '尝试直接上传文件...';
-						const sessionHash = genHash();
-						const form = new FormData();
-						form.append('files', file);
-
-						const up = await fetch(`${API_BASE}/gradio_api/upload?upload_id=${sessionHash}`, { method: 'POST', body: form });
-						if (!up.ok) throw new Error(`文件上传失败: ${up.status}`);
-
-						const arr = await up.json();
-						const first = Array.isArray(arr) ? arr[0] : null;
-						if (!first || !(typeof first === 'string' || first.path)) throw new Error('上传响应格式不正确');
-
-						const pathStr = typeof first === 'string' ? first : first.path;
-						const fileObj = {
-							path: pathStr, url: null, size: file.size, orig_name: file.name,
-							mime_type: file.type || null, is_stream: false, meta: { _type: 'gradio.FileData' }
-						};
-
-						statusText.textContent = '已入队 (路径方式)，等待处理...';
-						text = await runViaQueue(fileObj, fnIndex, sessionHash, (s) => statusText.textContent = s);
-					} catch (e1) {
-						console.warn("路径方式失败，回退到 Base64 方式。错误:", e1.message);
-						statusText.textContent = '路径方式失败，尝试Base64编码...';
-
-						const dataUrl = await readAsDataURL(file);
-						const baseObj = { name: file.name, data: dataUrl, is_file: true };
-						const sessionHash2 = genHash();
-
-						statusText.textContent = '已入队 (Base64方式)，等待处理...';
-						text = await runViaQueue(baseObj, fnIndex, sessionHash2, (s) => statusText.textContent = s);
-					}
-
-					statusText.textContent = '识别完成！';
-					resultText.value = text || '（未能识别出文本）';
-					resultWrapper.style.display = 'block';
-
-				} catch (e) {
-					statusText.textContent = `失败: ${e.message || e}`;
-					console.error(e);
-				} finally {
-					submitButton.disabled = false;
-					loader.style.display = 'none';
-				}
-			});
 		});
 	</script>
 </body>
