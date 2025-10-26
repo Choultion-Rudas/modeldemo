@@ -13,6 +13,7 @@
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
 	<script type="module" src="https://unpkg.com/@material/web/all.js?module"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 
 	<style>
 		:root {
@@ -425,24 +426,14 @@
 				});
 			});
 
-			const API_BASE_URL = "/api";
+			let clientPromise = null;
 
-			async function callPredict(payload) {
-				let resp = await fetch(`${API_BASE_URL}/run/model_inference`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(payload)
-				});
-
-				if (!resp.ok && (resp.status === 404 || resp.status === 405)) {
-					resp = await fetch(`${API_BASE_URL}/gradio_api/run/model_inference`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(payload)
-					});
+			function getClient() {
+				if (!clientPromise) {
+					const { Client } = window.gradio;
+					clientPromise = Client.connect(new URL('/api', location.origin).toString());
 				}
-
-				return resp;
+				return clientPromise;
 			}
 
 			submitButton.addEventListener('click', async () => {
@@ -453,67 +444,40 @@
 
 				submitButton.disabled = true;
 				loader.style.display = 'block';
-				statusText.textContent = '准备上传...';
+				statusText.textContent = '准备识别...';
 				resultWrapper.style.display = 'none';
 
 				const audioFile = audioInput.files[0];
 
 				try {
-					statusText.textContent = '上传文件中 (步骤 1/2)...';
-					const uploadData = new FormData();
-					uploadData.append("files", audioFile);
+					const client = await getClient();
+					statusText.textContent = '排队/识别中...';
 
-					const uploadResponse = await fetch(`${API_BASE_URL}/gradio_api/upload`, {
-						method: 'POST',
-						body: uploadData
-					});
+					const res = await client.predict("/model_inference", [
+						audioFile,
+						document.getElementById('language').value,
+						document.getElementById('output_format').value,
+						document.getElementById('use_itn').checked,
+						document.getElementById('merge_vad').checked,
+						parseFloat(document.getElementById('merge_length').value),
+						document.getElementById('ban_emo_unk').checked
+					]);
 
-					if (!uploadResponse.ok) {
-						const errorText = await uploadResponse.text();
-						throw new Error(`文件上传失败: ${uploadResponse.status} ${errorText}`);
-					}
-
-					const uploadResult = await uploadResponse.json();
-					const uploaded = uploadResult && uploadResult[0];
-
-					if (!uploaded) {
-						throw new Error("上传响应中未找到文件信息");
-					}
-
-					statusText.textContent = '上传完成，开始识别 (步骤 2/2)...';
-
-					const predictPayload = {
-						data: [
-							uploaded,
-							document.getElementById('language').value,
-							document.getElementById('output_format').value,
-							document.getElementById('use_itn').checked,
-							document.getElementById('merge_vad').checked,
-							parseFloat(document.getElementById('merge_length').value),
-							document.getElementById('ban_emo_unk').checked
-						],
-						fn_index: 0
-					};
-
-					const response = await callPredict(predictPayload);
-
-					if (!response.ok) {
-						const errText = await response.text();
-						throw new Error(`API 错误: ${response.status} - ${errText}`);
-					}
-
-					const result = await response.json();
-
-					if (result.error) {
-						throw new Error(result.error);
+					let text = '';
+					if (Array.isArray(res)) {
+						text = res[0] ?? '';
+					} else if (res && typeof res === 'object' && 'data' in res) {
+						text = res.data?.[0] ?? '';
+					} else {
+						text = String(res ?? '');
 					}
 
 					statusText.textContent = '识别完成！';
-					resultText.value = result.data && result.data[0] ? result.data[0] : '';
+					resultText.value = text;
 					resultWrapper.style.display = 'block';
 
-				} catch (error) {
-					statusText.textContent = `失败: ${error.message}`;
+				} catch (e) {
+					statusText.textContent = `失败: ${e.message || e}`;
 				} finally {
 					submitButton.disabled = false;
 					loader.style.display = 'none';
