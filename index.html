@@ -213,12 +213,6 @@
 			--md-outlined-text-field-container-shape: 8px;
 		}
 
-		md-outlined-text-field textarea {
-			resize: vertical;
-			overflow: auto;
-			min-height: 120px;
-		}
-
 		details {
 			margin-top: 24px;
 		}
@@ -239,11 +233,6 @@
 			overflow: hidden;
 			transition: max-height 0.3s ease-in-out;
 			max-height: 0;
-		}
-
-		details[open] .details-content-wrapper {
-			max-height: 500px;
-			/* A large enough value for the transition */
 		}
 
 		.advanced-settings-content {
@@ -416,7 +405,7 @@
 		function formatResult(t, e) { if (!t) return ""; return "纯净文本" === e ? t.replace(/<\|[^>]*>/g, "").replace(/\s+/g, " ").trim() : "原始富文本" === e ? t : "Emoji 格式" === e ? format_str_v3(t) : t }
 		function showToast(t) { toast.textContent = t, toast.classList.add("show"), setTimeout(() => { toast.classList.remove("show") }, 2e3) }
 		function adjustTextareaHeight() { try { const t = resultText.shadowRoot.querySelector("textarea"); t.style.height = "auto"; t.style.height = t.scrollHeight + "px" } catch (t) { } }
-		function updateResultDisplay() { if (rawRecognitionResult === null) return; resultText.value = formatResult(rawRecognitionResult, resultFormatSelect.value), requestAnimationFrame(adjustTextareaHeight) }
+		function updateResultDisplay() { if (rawRecognitionResult === null) return; resultText.value = formatResult(rawRecognitionResult, resultFormatSelect.value); setTimeout(adjustTextareaHeight, 10); }
 		function updateTimer(t, e) { clearInterval(etaInterval); const o = "排队" === e ? "预计排队剩余时间" : "预计处理剩余时间"; if (!t || t <= 0) return void (statusText.textContent = ""); let r = Math.round(t); const s = () => { statusText.textContent = `${o}: ${Math.floor(r / 60)}分${(r % 60).toString().padStart(2, "0")}秒` }; s(); etaInterval = setInterval(() => { r--; s(); if (r <= 0) { clearInterval(etaInterval); statusText.textContent = "正在处理..."; } }, 1e3); }
 		function startProcessTimer() { clearInterval(processTimerInterval); let e = 0; statusText.textContent = `处理用时: 0分00秒`; processTimerInterval = setInterval(() => { e++; statusText.textContent = `处理用时: ${Math.floor(e / 60)}分${(e % 60).toString().padStart(2, "0")}秒` }, 1e3) }
 		async function getFnIndex() { if (null !== cachedFnIndex) return cachedFnIndex; setSubmitButtonState("waking"); let e = 0; const t = setInterval(() => { e++; statusText.textContent = `正在唤醒服务，请稍候... (已等待 ${Math.floor(e / 60)}分${(e % 60).toString().padStart(2, "0")}秒)` }, 1e3); try { const e = new AbortController, o = setTimeout(() => e.abort(), 3e5), s = await fetch(`${API_BASE}/config`, { signal: e.signal }); if (clearTimeout(o), !s.ok) throw new Error(`服务器连接失败: Status ${s.status}`); const n = await s.json(); let r = n.dependencies.findIndex(e => "model_inference" === e.api_name); return cachedFnIndex = -1 !== r ? r : 0 } catch (e) { throw new Error("唤醒服务器超时或失败，请刷新页面重试。") } finally { clearInterval(t) } }
@@ -438,16 +427,30 @@
 
 			summary.addEventListener('click', (event) => {
 				event.preventDefault();
-				if (details.open) {
+				const isOpening = !details.open;
+				if (isOpening) {
+					details.setAttribute('open', '');
+					contentWrapper.style.maxHeight = contentWrapper.scrollHeight + 'px';
+				} else {
 					contentWrapper.style.maxHeight = '0px';
 					contentWrapper.addEventListener('transitionend', () => {
 						details.removeAttribute('open');
 					}, { once: true });
-				} else {
-					details.setAttribute('open', '');
-					contentWrapper.style.maxHeight = contentWrapper.scrollHeight + 'px';
 				}
 			});
+
+			const styleInternalTextarea = () => {
+				try {
+					const internalTextarea = resultText.shadowRoot.querySelector('textarea');
+					if (internalTextarea) {
+						internalTextarea.style.minHeight = '120px';
+						internalTextarea.style.resize = 'none';
+					}
+				} catch (e) {
+					console.error("Could not style internal textarea:", e);
+				}
+			};
+			styleInternalTextarea();
 
 
 			D.getElementById('upload-button').addEventListener('click', () => audioInput.click());
