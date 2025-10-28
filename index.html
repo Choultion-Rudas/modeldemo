@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>SenseVoice-Small</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400;500;700&display=swap"
 		rel="stylesheet">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -75,7 +75,7 @@
 			min-height: 100vh;
 			box-sizing: border-box;
 			opacity: 0;
-			transition: opacity 0.3s ease-in;
+			transition: opacity 0.5s ease-in-out;
 		}
 
 		.content-wrapper {
@@ -214,8 +214,9 @@
 		}
 
 		md-outlined-text-field textarea {
-			resize: none;
-			overflow-y: hidden;
+			resize: vertical;
+			overflow: auto;
+			min-height: 120px;
 		}
 
 		details {
@@ -235,20 +236,20 @@
 		}
 
 		.details-content-wrapper {
-			display: grid;
-			grid-template-rows: 0fr;
-			transition: grid-template-rows .3s ease-in-out;
+			overflow: hidden;
+			transition: max-height 0.3s ease-in-out;
+			max-height: 0;
 		}
 
-		details[open]>.details-content-wrapper {
-			grid-template-rows: 1fr;
+		details[open] .details-content-wrapper {
+			max-height: 500px;
+			/* A large enough value for the transition */
 		}
 
 		.advanced-settings-content {
 			padding-top: 16px;
 			margin-top: 16px;
 			border-top: 1px solid var(--md-sys-color-outline-variant);
-			overflow: hidden;
 		}
 
 		#toast {
@@ -343,7 +344,7 @@
 			</md-outlined-select>
 		</div>
 
-		<details>
+		<details id="advanced-settings-details">
 			<summary>高级设置</summary>
 			<div class="details-content-wrapper">
 				<div class="advanced-settings-content">
@@ -395,7 +396,7 @@
 					</div>
 				</md-filled-button>
 			</div>
-			<md-outlined-text-field id="result-text" type="textarea" rows="5" readonly></md-outlined-text-field>
+			<md-outlined-text-field id="result-text" type="textarea" readonly></md-outlined-text-field>
 		</div>
 	</div>
 	<div id="toast"></div>
@@ -407,28 +408,47 @@
 		const D = document;
 		const audioInput = D.getElementById('audio_input'), fileNameLabel = D.getElementById('file-name-label'), submitButton = D.getElementById('submit-button'), submitIcon = D.getElementById('submit-icon'), submitText = D.getElementById('submit-text'), statusText = D.getElementById('status-text'), progressWrapper = D.getElementById('progress-wrapper'), progressLabel = D.getElementById('progress-label'), progressBar = D.getElementById('progress-bar'), resultWrapper = D.getElementById('result-wrapper'), resultFormatSelect = D.getElementById('result-format-select'), resultText = D.getElementById('result-text'), copyButton = D.getElementById('copy-button'), toast = D.getElementById('toast'), dragOverlay = D.getElementById('drag-overlay'), dropZone = D.documentElement;
 		const API_BASE = '/api', MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
-		let cachedFnIndex = null, rawRecognitionResult = '', etaInterval, isUploading = false;
+		let cachedFnIndex = null, rawRecognitionResult = '', etaInterval, processTimerInterval, isUploading = false;
 
 		const emoji_dict_full = { "<|nospeech|><|Event_UNK|>": "❓", "<|zh|>": "", "<|en|>": "", "<|yue|>": "", "<|ja|>": "", "<|ko|>": "", "<|nospeech|>": "", "<|HAPPY|>": "😊", "<|SAD|>": "😔", "<|ANGRY|>": "😡", "<|NEUTRAL|>": "", "<|BGM|>": "🎼", "<|Speech|>": "", "<|Applause|>": "👏", "<|Laughter|>": "😀", "<|FEARFUL|>": "😰", "<|DISGUSTED|>": "🤢", "<|SURPRISED|>": "😮", "<|Cry|>": "😭", "<|EMO_UNKNOWN|>": "", "<|Sneeze|>": "🤧", "<|Breath|>": "", "<|Cough|>": "😷", "<|Sing|>": "", "<|Speech_Noise|>": "", "<|withitn|>": "", "<|woitn|>": "", "<|GBG|>": "", "<|Event_UNK|>": "" }, emo_dict_map = { "<|HAPPY|>": "😊", "<|SAD|>": "😔", "<|ANGRY|>": "😡", "<|NEUTRAL|>": "", "<|FEARFUL|>": "😰", "<|DISGUSTED|>": "🤢", "<|SURPRISED|>": "😮" }, event_dict = { "<|BGM|>": "🎼", "<|Speech|>": "", "<|Applause|>": "👏", "<|Laughter|>": "😀", "<|Cry|>": "😭", "<|Sneeze|>": "🤧", "<|Breath|>": "", "<|Cough|>": "🤧" }, lang_dict = { "<|zh|>": "<|lang|>", "<|en|>": "<|lang|>", "<|yue|>": "<|lang|>", "<|ja|>": "<|lang|>", "<|ko|>": "<|lang|>", "<|nospeech|>": "<|lang|>" }, emo_set = new Set(["😊", "😔", "😡", "😰", "🤢", "😮"]), event_set = new Set(["🎼", "👏", "😀", "😭", "🤧", "😷"]);
 		function format_str_v2(s) { let t = {}, e = "<|NEUTRAL|>"; for (const o in emoji_dict_full) t[o] = (s.match(new RegExp(o.replace(/\|/g, "\\|"), "g")) || []).length, s = s.replaceAll(o, ""); for (const o in emo_dict_map) (t[o] || 0) > (t[e] || 0) && (e = o); for (const o in event_dict) (t[o] || 0) > 0 && (s = event_dict[o] + s); s += emo_dict_map[e] || ""; const o = new Set([...emo_set, ...event_set]); return o.forEach(t => { s = s.replaceAll(" " + t, t).replaceAll(t + " ", t) }), s.trim() }
 		function format_str_v3(s) { const t = t => t && emo_set.has(t.slice(-1)) ? t.slice(-1) : null, e = t => t && event_set.has(t[0]) ? t[0] : null; s = s.replaceAll("<|nospeech|><|Event_UNK|>", "❓"); for (const o in lang_dict) s = s.replaceAll(o, "<|lang|>"); let o = s.split("<|lang|>").map(t => format_str_v2(t).trim()), r = " " + (o[0] || ""); let n = e(r); for (let s = 1; s < o.length; s++) { if (!o[s]) continue; e(o[s]) === n && null !== n && (o[s] = o[s].substring(1)), n = e(o[s]), null !== t(o[s]) && t(o[s]) === t(r) && (r = r.slice(0, -1)), r += o[s].trim().replace(/^\s+/, "") } return r.trim() }
 		function formatResult(t, e) { if (!t) return ""; return "纯净文本" === e ? t.replace(/<\|[^>]*>/g, "").replace(/\s+/g, " ").trim() : "原始富文本" === e ? t : "Emoji 格式" === e ? format_str_v3(t) : t }
 		function showToast(t) { toast.textContent = t, toast.classList.add("show"), setTimeout(() => { toast.classList.remove("show") }, 2e3) }
-		function adjustTextareaHeight() { const t = resultText.shadowRoot.querySelector("textarea"); t && (t.style.height = "auto", t.style.height = t.scrollHeight + "px") }
-		function updateResultDisplay() { if (rawRecognitionResult === null) return; resultText.value = formatResult(rawRecognitionResult, resultFormatSelect.value), adjustTextareaHeight() }
-		function updateTimer(t, e) { clearInterval(etaInterval); const o = e ? "预计剩余时间" : ""; if (!t || t <= 0) return void (statusText.textContent = o); let r = Math.round(t); statusText.textContent = `${o}: ${Math.floor(r / 60)}分${(r % 60).toString().padStart(2, "0")}秒`; etaInterval = setInterval(() => { r--; statusText.textContent = `${o}: ${Math.floor(r / 60)}分${(r % 60).toString().padStart(2, "0")}秒`; if (r <= 0) { clearInterval(etaInterval); statusText.textContent = "正在处理..."; } }, 1e3); }
-		async function getFnIndex(t = 0) { const e = 5, o = 5e3; if (null !== cachedFnIndex) return cachedFnIndex; if (statusText.textContent = 0 === t ? "正在连接服务器..." : `正在唤醒服务器... (尝试 ${t}/${e})`, t >= e) throw new Error("服务器唤醒失败，请稍后刷新页面重试。"); try { const t = new AbortController, r = setTimeout(() => t.abort(), 2e4), s = await fetch(`${API_BASE}/config`, { signal: t.signal }); if (clearTimeout(r), !s.ok) throw new Error(`Status ${s.status}`); const n = await s.json(); let l = n.dependencies.findIndex(t => "model_inference" === t.api_name); return cachedFnIndex = -1 !== l ? l : 0 } catch (r) { return await new Promise(t => setTimeout(t, o)), getFnIndex(t + 1) } }
+		function adjustTextareaHeight() { try { const t = resultText.shadowRoot.querySelector("textarea"); t.style.height = "auto"; t.style.height = t.scrollHeight + "px" } catch (t) { } }
+		function updateResultDisplay() { if (rawRecognitionResult === null) return; resultText.value = formatResult(rawRecognitionResult, resultFormatSelect.value), requestAnimationFrame(adjustTextareaHeight) }
+		function updateTimer(t, e) { clearInterval(etaInterval); const o = "排队" === e ? "预计排队剩余时间" : "预计处理剩余时间"; if (!t || t <= 0) return void (statusText.textContent = ""); let r = Math.round(t); const s = () => { statusText.textContent = `${o}: ${Math.floor(r / 60)}分${(r % 60).toString().padStart(2, "0")}秒` }; s(); etaInterval = setInterval(() => { r--; s(); if (r <= 0) { clearInterval(etaInterval); statusText.textContent = "正在处理..."; } }, 1e3); }
+		function startProcessTimer() { clearInterval(processTimerInterval); let e = 0; statusText.textContent = `处理用时: 0分00秒`; processTimerInterval = setInterval(() => { e++; statusText.textContent = `处理用时: ${Math.floor(e / 60)}分${(e % 60).toString().padStart(2, "0")}秒` }, 1e3) }
+		async function getFnIndex() { if (null !== cachedFnIndex) return cachedFnIndex; setSubmitButtonState("waking"); let e = 0; const t = setInterval(() => { e++; statusText.textContent = `正在唤醒服务，请稍候... (已等待 ${Math.floor(e / 60)}分${(e % 60).toString().padStart(2, "0")}秒)` }, 1e3); try { const e = new AbortController, o = setTimeout(() => e.abort(), 3e5), s = await fetch(`${API_BASE}/config`, { signal: e.signal }); if (clearTimeout(o), !s.ok) throw new Error(`服务器连接失败: Status ${s.status}`); const n = await s.json(); let r = n.dependencies.findIndex(e => "model_inference" === e.api_name); return cachedFnIndex = -1 !== r ? r : 0 } catch (e) { throw new Error("唤醒服务器超时或失败，请刷新页面重试。") } finally { clearInterval(t) } }
 		function genHash() { return Math.random().toString(36).slice(2) }
-		function setSubmitButtonState(t) { const e = { idle: { text: "开始识别", icon: "play_arrow", enabled: !0 }, uploading: { text: "正在上传", icon: "upload", enabled: !1 }, processing: { text: "正在识别", icon: "hourglass_empty", enabled: !1 }, disabled: { text: "准备中...", icon: "pending", enabled: !1 } }; const o = e[t] || e.idle; submitText.textContent = o.text, submitIcon.textContent = o.icon, submitButton.disabled = !o.enabled }
-		async function runViaQueue(t, e, o) { return new Promise((r, s) => { const n = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${o}`), a = setTimeout(() => { l || (n.close(), s(new Error("处理超时"))) }, 9e5); let l = !1; fetch(`${API_BASE}/gradio_api/queue/join`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: [t, D.getElementById("language").value, "原始富文本", D.getElementById("use_itn").checked, D.getElementById("merge_vad").checked, parseFloat(D.getElementById("merge_length").value), D.getElementById("ban_emo_unk").checked], fn_index: e, session_hash: o }) }).then(t => { if (!t.ok) throw new Error(`加入队列失败: ${t.status} ${t.statusText}`) }).catch(t => s(t)), n.onmessage = t => { try { const e = JSON.parse(t.data); if ("estimation" === e.msg) setSubmitButtonState("processing"), statusText.textContent = `排队中 (第 ${e.rank + 1} 位)`, updateTimer(e.rank_eta, !0); else if ("process_starts" === e.msg) setSubmitButtonState("processing"), statusText.textContent = "", updateTimer(e.eta, !0); else if ("process_completed" === e.msg) l = !0, clearTimeout(a), n.close(), clearInterval(etaInterval), e.success ? r(e.output?.data?.[0] ?? "") : s(new Error(e.output?.error || "服务器返回错误")); else if ("queue_full" === e.msg) l = !0, clearTimeout(a), n.close(), clearInterval(etaInterval), s(new Error("服务器当前队列已满，请稍后再试。")) } catch (t) { } }, n.onerror = () => { l || (n.close(), clearInterval(etaInterval), s(new Error("连接中断"))) } }) }
+		function setSubmitButtonState(t) { const e = { idle: { text: "开始识别", icon: "play_arrow", enabled: !0 }, waking: { text: "正在唤醒", icon: "hub", enabled: !1 }, uploading: { text: "正在上传", icon: "upload", enabled: !1 }, queuing: { text: "排队中...", icon: "groups", enabled: !1 }, processing: { text: "正在识别", icon: "hourglass_empty", enabled: !1 } }; const o = e[t] || e.idle; submitText.textContent = o.text, submitIcon.textContent = o.icon, submitButton.disabled = !o.enabled }
+		async function runViaQueue(t, e, o) { return new Promise((r, s) => { const n = new EventSource(`${API_BASE}/gradio_api/queue/data?session_hash=${o}`), a = setTimeout(() => { l || (n.close(), s(new Error("处理超时"))) }, 9e5); let l = !1; fetch(`${API_BASE}/gradio_api/queue/join`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: [t, D.getElementById("language").value, "原始富文本", D.getElementById("use_itn").checked, D.getElementById("merge_vad").checked, parseFloat(D.getElementById("merge_length").value), D.getElementById("ban_emo_unk").checked], fn_index: e, session_hash: o }) }).then(t => { if (!t.ok) throw new Error(`加入队列失败: ${t.status} ${t.statusText}`) }).catch(t => s(t)), n.onmessage = t => { try { const e = JSON.parse(t.data); if ("estimation" === e.msg) setSubmitButtonState("queuing"), statusText.textContent = `队列位置: ${e.rank + 1}`, updateTimer(e.rank_eta, "排队"); else if ("process_starts" === e.msg) setSubmitButtonState("processing"), clearInterval(etaInterval), startProcessTimer(); else if ("process_completed" === e.msg) l = !0, clearTimeout(a), n.close(), clearInterval(etaInterval), clearInterval(processTimerInterval), e.success ? r(e.output?.data?.[0] ?? "") : s(new Error(e.output?.error || "服务器返回错误")); else if ("queue_full" === e.msg) l = !0, clearTimeout(a), n.close(), clearInterval(etaInterval), clearInterval(processTimerInterval), s(new Error("服务器当前队列已满，请稍后再试。")) } catch (t) { } }, n.onerror = () => { l || (n.close(), clearInterval(etaInterval), clearInterval(processTimerInterval), s(new Error("连接中断"))) } }) }
 
-		D.addEventListener('DOMContentLoaded', () => {
+		window.addEventListener('load', () => {
 			window.addEventListener('beforeunload', e => {
 				if (isUploading) {
 					e.preventDefault();
 					e.returnValue = '';
 				}
 			});
+
+			const details = D.getElementById('advanced-settings-details');
+			const summary = details.querySelector('summary');
+			const contentWrapper = details.querySelector('.details-content-wrapper');
+
+			summary.addEventListener('click', (event) => {
+				event.preventDefault();
+				if (details.open) {
+					contentWrapper.style.maxHeight = '0px';
+					contentWrapper.addEventListener('transitionend', () => {
+						details.removeAttribute('open');
+					}, { once: true });
+				} else {
+					details.setAttribute('open', '');
+					contentWrapper.style.maxHeight = contentWrapper.scrollHeight + 'px';
+				}
+			});
+
 
 			D.getElementById('upload-button').addEventListener('click', () => audioInput.click());
 			audioInput.addEventListener('change', () => { if (audioInput.files.length > 0) fileNameLabel.textContent = audioInput.files[0].name });
@@ -454,11 +474,14 @@
 				const file = audioInput.files[0];
 				if (file.size > MAX_UPLOAD_SIZE) return showToast(`文件过大，请上传小于 ${MAX_UPLOAD_SIZE / 1024 / 1024}MB 的文件。`);
 
-				setSubmitButtonState('disabled');
-				statusText.textContent = ''; progressWrapper.style.display = 'none'; resultWrapper.style.display = 'none'; clearInterval(etaInterval);
+				setSubmitButtonState("idle"); statusText.textContent = ''; progressWrapper.style.display = 'none'; resultWrapper.style.display = 'none'; clearInterval(etaInterval); clearInterval(processTimerInterval);
 				try {
 					const fnIndex = await getFnIndex(), sessionHash = genHash();
-					setSubmitButtonState('uploading'); progressWrapper.style.display = 'flex'; progressLabel.textContent = '正在上传...';
+
+					statusText.textContent = '';
+					setSubmitButtonState('uploading');
+					progressWrapper.style.display = 'flex';
+					progressLabel.textContent = '正在上传...';
 
 					const form = new FormData(); form.append('files', file);
 					const xhr = new XMLHttpRequest(); xhr.open('POST', `${API_BASE}/gradio_api/upload?upload_id=${sessionHash}`, true);
@@ -473,17 +496,30 @@
 					});
 
 					isUploading = false;
-					progressWrapper.style.display = 'none'; setSubmitButtonState('processing'); statusText.textContent = '已入队，等待处理...';
+					progressWrapper.style.display = 'none';
+					setSubmitButtonState('queuing');
+					statusText.textContent = '已入队，等待处理...';
 					const fileObj = { path: pathStr, url: null, size: file.size, orig_name: file.name, is_stream: false, meta: { _type: 'gradio.FileData' } };
 					rawRecognitionResult = await runViaQueue(fileObj, fnIndex, sessionHash);
-					statusText.textContent = '识别完成！'; resultWrapper.style.display = 'block'; resultFormatSelect.value = '纯净文本'; updateResultDisplay();
+
+					const finalTime = statusText.textContent.replace('处理用时: ', '');
+					statusText.textContent = `识别完成！总用时: ${finalTime}`;
+					resultWrapper.style.display = 'block';
+					resultFormatSelect.value = '纯净文本';
+					updateResultDisplay();
+
 				} catch (e) {
-					statusText.textContent = `失败: ${e.message || '未知错误'}`; console.error(e);
+					statusText.textContent = `失败: ${e.message || '未知错误'}`;
+					console.error(e);
 				} finally {
 					isUploading = false;
-					setSubmitButtonState('idle'); progressWrapper.style.display = 'none'; clearInterval(etaInterval);
+					setSubmitButtonState('idle');
+					progressWrapper.style.display = 'none';
+					clearInterval(etaInterval);
+					clearInterval(processTimerInterval);
 				}
 			});
+
 			D.body.style.opacity = 1;
 		});
 	</script>
